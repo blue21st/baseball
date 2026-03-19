@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>野球成績管理</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚾</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -412,7 +411,9 @@ function save() {
 }
 
 const HIT_RESULTS = ['ヒット','2塁打','3塁打','本塁打'];
-const NO_AB_RESULTS = ['四球','死球','犠打','犠飛'];
+const NO_AB_RESULTS = ['四球','死球','犠打','犠飛','打撃妨害','走塁妨害'];
+const AB_POSITIONS = ['投','捕','一','二','三','遊','左','中','右'];
+const AB_RESULTS   = ['ゴロ','ライナー','フライ','ファールフライ','ヒット','2塁打','3塁打','本塁打','空振り三振','見逃し三振','四球','死球','犠打','犠飛','打撃妨害','走塁妨害','エラー','フィルダースチョイス'];
 
 function getResult(val) {
   // "左2塁打" → "2塁打"、"三ゴロ" → "ゴロ"、"四球" → "四球"
@@ -821,13 +822,6 @@ function deletePlayer(id) {
   save(); renderAll(); showToast('削除しました');
 }
 
-
-// --- At-bat picker data ---
-const AB_POSITIONS = ['投','捕','一','二','三','遊','左','中','右'];
-const AB_RESULTS   = ['ゴロ','ライナー','フライ','ファールフライ','ヒット','2塁打','3塁打','本塁打','空振り三振','見逃し三振','四球','死球','犠打','犠飛','打撃妨害','走塁妨害','エラー','フィルダースチョイス'];
-
-const HIT_RESULTS  = ['ヒット','2塁打','3塁打','本塁打'];
-const NO_AB_RESULTS = ['四球','死球','犠打','犠飛','打撃妨害','走塁妨害'];
 
 // Parse "三ゴロ" -> {pos:'三', res:'ゴロ'} or free text
 function parseAtBat(val) {
