@@ -922,7 +922,7 @@ function toggleDetail(id) {
   if (open) _openDetails.add(id); else _openDetails.delete(id);
 }
 
-async async function deleteGame(id) {
+async function deleteGame(id) {
   id = Number(id);
   if (!confirm('この試合記録を削除しますか？')) return;
   games = games.filter(g => Number(g.id) !== id);
