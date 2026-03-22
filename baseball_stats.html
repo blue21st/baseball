@@ -1350,11 +1350,14 @@ function openPlayerDetail(pid) {
       if (!val||!val.trim()) return;
       const res = getResult(val);
       resultCounts[res] = (resultCounts[res]||0) + 1;
-      // 方向
-      for (const pos of AB_POSITIONS) {
-        if (val.startsWith(pos)) { directionCounts[pos]++; break; }
+      // 打球分布：前に飛んだ打球かつ位置が選択されているもののみカウント
+      const noBallResult = ['空振り三振','見逃し三振','四球','死球','打撃妨害','走塁妨害'];
+      const hasPosition = AB_POSITIONS.some(pos => val.startsWith(pos));
+      if (!noBallResult.includes(res) && hasPosition) {
+        for (const pos of AB_POSITIONS) {
+          if (val.startsWith(pos)) { directionCounts[pos]++; break; }
+        }
       }
-      if (!AB_POSITIONS.some(pos => val.startsWith(pos))) directionCounts['不明']++;
       // 打数・安打・塁打
       if (isAB(val)) ab++;
       if (isHit(val)) {
