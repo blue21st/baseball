@@ -1340,7 +1340,7 @@ function openPlayerDetail(pid) {
   let pa=0,ab=0,h=0,rbi=0,score=0,sba=0,sb=0,g=0;
   let tb=0,bb=0,hbp=0,sf=0,sh=0;
   const resultCounts = {};
-  const directionCounts = {投:0,捕:0,一:0,二:0,三:0,遊:0,左:0,中:0,右:0,不明:0};
+  const directionCounts = {投:0,捕:0,一:0,二:0,三:0,遊:0,左:0,中:0,右:0};
 
   games.forEach(game => {
     const s = game.stats.find(s => s.pid === pid);
@@ -1401,15 +1401,15 @@ function openPlayerDetail(pid) {
     '左': {cx:58,  cy:100},
     '中': {cx:150, cy:55},
     '右': {cx:242, cy:100},
-    '不明': {cx:150, cy:172},
   };
   const totalBalls = Object.values(directionCounts).reduce((a,b)=>a+b,0);
   const maxCount = Math.max(...Object.values(directionCounts), 1);
   const bubble = (pos) => {
     const count = directionCounts[pos]||0;
-    if (count === 0) return '';
+    if (count === 0) return '';  // カウント0は表示しない
     const {cx, cy} = posCoords[pos];
     const p = totalBalls>0 ? Math.round(count/totalBalls*100) : 0;
+    if (p === 0) return '';  // 割合0%も表示しない
     const r = Math.max(14, Math.round(14 + (count/maxCount)*26));
     const color = count/maxCount > 0.5 ? '#f5c842' : count/maxCount > 0.25 ? '#f5a623' : '#4caf8a';
     const textColor = count/maxCount > 0.25 ? '#1a1a00' : '#fff';
