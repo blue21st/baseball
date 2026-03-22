@@ -558,9 +558,11 @@ let games = [];
 let sortKey = 'number', sortDir = 1;
 let _playersRowId = null;
 let _gamesRowId = null;
+let _isLoaded = false;
 
 async function loadFromSupabase() {
   showToast('データを読み込み中...');
+  _isLoaded = false;
   try {
     const [pr, gr] = await Promise.all([sb.get('players'), sb.get('games')]);
     if (pr && pr.length > 0) {
@@ -571,6 +573,7 @@ async function loadFromSupabase() {
       _gamesRowId = gr[0].id;
       games = gr[0].data || [];
     }
+    _isLoaded = true;
     renderAll();
     showToast('読み込み完了！');
   } catch(e) {
@@ -1032,6 +1035,7 @@ function clearForm() {
 }
 
 async function saveGame() {
+  if (!_isLoaded) { showToast('読み込み中です。少し待ってください'); return; }
   const date = document.getElementById('game-date').value;
   const opponent = document.getElementById('game-opponent').value.trim();
   const us = parseInt(document.getElementById('game-score-us').value) || 0;
@@ -1116,6 +1120,7 @@ async function savePlayer(id) {
 }
 
 async function addPlayer() {
+  if (!_isLoaded) { showToast('読み込み中です。少し待ってください'); return; }
   const number = parseInt(document.getElementById('reg-number').value);
   const name = document.getElementById('reg-name').value.trim();
   const pos = document.getElementById('reg-pos').value;
