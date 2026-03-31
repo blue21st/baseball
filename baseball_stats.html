@@ -883,16 +883,11 @@ function renderGames() {
       const abCount = (s.atBats||[]).filter(a=>a&&a.trim()).length;
       const playerH = countHits(s.atBats);
       return `<tr style="border-top:1px solid var(--border);">
-        <td style="padding:8px 10px;font-size:13px;white-space:nowrap;">
+        <td style="padding:8px 10px;font-size:13px;white-space:nowrap;cursor:pointer;" onclick="openAtBats(${id},${p.id})">
           <span class="player-num" style="font-size:15px">${p.number}</span>${p.name}
+          ${abCount>0?`<span style="font-size:10px;color:var(--accent);margin-left:4px;">(${abCount})</span>`:''}
         </td>
         ${td(s.pa)}${td(playerH)}${td(s.rbi||0)}${td(s.score||0)}${td(s.sba||0)}${td(s.sb||0)}
-        <td style="padding:8px 10px;text-align:center;">
-          <button class="btn btn-outline" style="font-size:11px;padding:4px 10px;white-space:nowrap;"
-            onclick="openAtBats(${id},${p.id})">
-            打席詳細 ${abCount>0?'('+abCount+')':''}
-          </button>
-        </td>
       </tr>`;
     }).filter(Boolean).join('');
 
@@ -955,7 +950,7 @@ function renderGames() {
         <table style="width:100%;border-collapse:collapse;">
           <thead style="background:var(--bg);">
             <tr>
-              ${th('選手')}${th('打席')}${th('安打')}${th('打点')}${th('得点')}${th('盗企')}${th('盗塁')}${th('')}
+              ${th('選手')}${th('打席')}${th('安打')}${th('打点')}${th('得点')}${th('盗企')}${th('盗塁')}
             </tr>
           </thead>
           <tbody>${playerRows}</tbody>
