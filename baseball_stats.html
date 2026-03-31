@@ -173,35 +173,54 @@
   }
   .slide-panel.open { transform: translateX(0); }
   .slide-panel-header {
-    padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+    padding: 16px 20px 14px; border-bottom: 1px solid var(--border);
     display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0;
   }
-  .slide-panel-body { flex: 1; overflow-y: auto; padding: 20px; }
+  .slide-panel-body { flex: 1; overflow-y: auto; padding: 0 16px 20px; }
   .slide-close { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; }
   .slide-close:hover { color: var(--text); }
-  .at-bat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .at-bat-num { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--muted); min-width: 24px; text-align: center; }
-  .at-bat-input {
-    flex: 1; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 9px 12px; color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; outline: none;
-  }
-  .at-bat-input:focus { border-color: var(--accent); }
-  .at-bat-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1; }
+
+  /* 選手ナビ */
+  .player-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 4px 12px; flex-shrink: 0; }
+  .nav-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+  .nav-btn:hover:not(.nav-disabled) { border-color: var(--accent); color: var(--accent); }
+  .nav-disabled { opacity: 0.2; pointer-events: none; }
+  .player-center { text-align: center; flex: 1; padding: 0 12px; }
+  .player-big-num { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--accent); line-height: 1; }
+  .player-big-name { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .player-big-pos { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .slide-dots { display: flex; gap: 5px; justify-content: center; margin-top: 10px; }
+  .slide-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+  .slide-dot.active { background: var(--accent); width: 18px; border-radius: 4px; }
+  .pa-wrap { text-align: center; padding-bottom: 14px; }
+  .pa-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--muted); }
+
+  /* 打席カード */
+  .at-bat-card { background: var(--surface2); border-radius: 16px; padding: 16px 18px; margin-bottom: 10px; border: 1px solid var(--border); transition: border-color 0.2s; }
+  .at-bat-card:focus-within { border-color: rgba(232,200,64,0.3); }
+  .at-bat-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .at-bat-card-num { font-size: 11px; color: var(--muted); letter-spacing: 1px; font-weight: 500; }
+  .at-bat-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0; line-height: 1; }
   .at-bat-del:hover { color: var(--red); }
+  .at-bat-card-inputs { display: grid; grid-template-columns: 90px 1fr; gap: 8px; }
+  .at-bat-card-inputs select {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 28px 13px 10px; color: var(--text); font-size: 16px;
+    font-family: 'Noto Sans JP', sans-serif; outline: none; cursor: pointer; width: 100%;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .at-bat-card-inputs select:focus { border-color: rgba(232,200,64,0.5); }
+
   .btn-add-ab {
-    width: 100%; margin-top: 4px; padding: 9px; border-radius: 8px;
-    border: 1px dashed var(--border); background: transparent;
-    color: var(--muted); font-size: 13px; cursor: pointer;
+    width: 100%; margin-top: 4px; padding: 15px; border-radius: 12px;
+    border: 1.5px dashed var(--border); background: transparent;
+    color: var(--muted); font-size: 15px; cursor: pointer;
     font-family: 'Noto Sans JP', sans-serif; transition: all 0.2s;
   }
   .btn-add-ab:hover { border-color: var(--accent); color: var(--accent); }
-  .player-section { margin-bottom: 24px; }
-  .player-section-title {
-    font-size: 13px; font-weight: 700; margin-bottom: 10px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
-  }
+  .swipe-hint { text-align: center; font-size: 11px; color: var(--muted); margin-top: 14px; opacity: 0.5; }
 
 
   .player-stat-header {
@@ -1197,8 +1216,10 @@ function fmtAtBat(pos, res) {
 
 // --- Slide panel: at-bats ---
 let _slideGameId = null;
-
 let _slideFocusPid = null;
+let _slidePlayerIdx = 0;
+let _slidePlayerList = [];
+
 function openAtBats(gameId, focusPid) {
   _slideGameId = gameId;
   _slideFocusPid = focusPid || null;
@@ -1206,61 +1227,104 @@ function openAtBats(gameId, focusPid) {
   if (!g) return;
   document.getElementById('slide-title').textContent = 'vs ' + g.opponent;
   document.getElementById('slide-subtitle').textContent = g.date + ' ／ ' + g.us + ' - ' + g.them;
+
+  // 対象選手リストを作成
+  _slidePlayerList = [...players].sort((a,b) => a.number - b.number).map(p => {
+    let stat = g.stats.find(s => s.pid === p.id);
+    if (!stat) { stat = {pid: p.id, pa: 0, rbi:0, score:0, sba:0, sb:0, atBats: []}; g.stats.push(stat); }
+    if (!stat.atBats) stat.atBats = [];
+    return {p, stat};
+  }).filter(({stat}) => stat.pa > 0 || stat.atBats.length > 0);
+
+  // フォーカス選手のインデックスを設定
+  if (_slideFocusPid) {
+    const idx = _slidePlayerList.findIndex(({p}) => p.id === _slideFocusPid);
+    _slidePlayerIdx = idx >= 0 ? idx : 0;
+  } else {
+    _slidePlayerIdx = 0;
+  }
+
   renderSlideBody();
   document.getElementById('slide-overlay').classList.add('open');
   document.getElementById('slide-panel').classList.add('open');
+
+  // スワイプ対応
+  const panel = document.getElementById('slide-panel');
+  let startX = 0;
+  panel.ontouchstart = (e) => { startX = e.touches[0].clientX; };
+  panel.ontouchend = (e) => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) slideNext();
+      else slidePrev();
+    }
+  };
+}
+
+function slidePrev() {
+  if (_slidePlayerIdx > 0) { _slidePlayerIdx--; renderSlideBody(); }
+}
+function slideNext() {
+  if (_slidePlayerIdx < _slidePlayerList.length - 1) { _slidePlayerIdx++; renderSlideBody(); }
 }
 
 function renderSlideBody() {
   const g = games.find(g => g.id === _slideGameId);
   if (!g) return;
   const body = document.getElementById('slide-body');
-  const sortedStats = [...players].sort((a,b) => a.number - b.number).map(p => {
-    let stat = g.stats.find(s => s.pid === p.id);
-    if (!stat) { stat = {pid: p.id, pa: 0, rbi:0, score:0, sba:0, sb:0, atBats: []}; g.stats.push(stat); }
-    if (!stat.atBats) stat.atBats = [];
-    return {p, stat};
-  }).filter(({p, stat}) => {
-    if (_slideFocusPid) return p.id === _slideFocusPid;
-    return stat.pa > 0 || stat.atBats.length > 0;
-  });
 
-  if (!sortedStats.length) {
+  if (!_slidePlayerList.length) {
     body.innerHTML = '<p style="color:var(--muted);font-size:14px;text-align:center;padding:40px 0">打席数が入力されている選手がいません。<br>試合入力で打席数を入力してください。</p>';
     return;
   }
 
-  body.innerHTML = sortedStats.map(({p, stat}) => {
-    const count = Math.max(stat.pa, stat.atBats.length);
-    const rows = Array.from({length: count}, (_,i) => {
-      const {pos, res} = parseAtBat(stat.atBats[i]);
-      const posOpts = ['', ...AB_POSITIONS].map(v =>
-        `<option value="${v}"${v===pos?' selected':''}>${v||'なし'}</option>`).join('');
-      const resOpts = ['', ...AB_RESULTS].map(v =>
-        `<option value="${v}"${v===res?' selected':''}>${v||'—'}</option>`).join('');
-      const sel = `background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 6px;color:var(--text);font-size:13px;font-family:inherit;outline:none;cursor:pointer;`;
-      const needsPos = ['ゴロ','フライ','ライナー','ファールフライ','ヒット','2塁打','3塁打','本塁打','エラー','フィルダースチョイス'];
-      const showWarn = res && needsPos.includes(res) && !pos;
-      return `<div class="at-bat-row">
-        <span class="at-bat-num" style="min-width:52px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--muted);">第${i+1}打席</span>
-        <select style="${sel}width:72px;${showWarn?'border-color:var(--red);':''}" onchange="setAtBatPos(${_slideGameId},${p.id},${i},this.value)">${posOpts}</select>
-        <select style="${sel}flex:1;" onchange="setAtBatRes(${_slideGameId},${p.id},${i},this.value)">${resOpts}</select>
-        ${showWarn ? `<span id="pos-warn-${_slideGameId}-${p.id}-${i}" style="font-size:10px;color:var(--red);white-space:nowrap;">位置を選択</span>` : `<span id="pos-warn-${_slideGameId}-${p.id}-${i}" style="display:none;font-size:10px;color:var(--red);white-space:nowrap;">位置を選択</span>`}
-        <button class="at-bat-del" onclick="removeAtBat(${_slideGameId},${p.id},${i})">×</button>
-      </div>`;
-    }).join('');
+  const {p, stat} = _slidePlayerList[_slidePlayerIdx];
+  const total = _slidePlayerList.length;
+  const current = _slidePlayerIdx + 1;
 
-    return `<div class="player-section">
-      <div class="player-section-title">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted)">${p.number}</span>
-        <span>${p.name}</span>
-        <span style="font-size:11px;color:var(--muted);margin-left:4px;">${p.pos}</span>
-        <span style="margin-left:auto;font-size:11px;color:var(--muted)">${stat.atBats.filter(a=>a&&a.trim()).length} / ${stat.pa} 打席</span>
+  const count = Math.max(stat.pa, stat.atBats.length);
+  const sel = `background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 28px 13px 10px;color:var(--text);font-size:16px;font-family:'Noto Sans JP',sans-serif;outline:none;cursor:pointer;width:100%;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;`;
+  const rows = Array.from({length: count}, (_,i) => {
+    const {pos, res} = parseAtBat(stat.atBats[i]);
+    const posOpts = ['', ...AB_POSITIONS].map(v =>
+      `<option value="${v}"${v===pos?' selected':''}>${v||'なし'}</option>`).join('');
+    const resOpts = ['', ...AB_RESULTS].map(v =>
+      `<option value="${v}"${v===res?' selected':''}>${v||'結果を選択'}</option>`).join('');
+    const needsPos = ['ゴロ','フライ','ライナー','ファールフライ','ヒット','2塁打','3塁打','本塁打','エラー','フィルダースチョイス'];
+    const showWarn = res && needsPos.includes(res) && !pos;
+    return `<div class="at-bat-card">
+      <div class="at-bat-card-top">
+        <span class="at-bat-card-num">第 ${i+1} 打席</span>
+        <button class="at-bat-del" onclick="removeAtBat(${_slideGameId},${p.id},${i})">×</button>
       </div>
-      ${rows}
-      <button class="btn-add-ab" onclick="addAtBat(${_slideGameId},${p.id})">＋ 打席を追加</button>
+      <div class="at-bat-card-inputs">
+        <select style="${sel}${showWarn?'border-color:var(--red);':''}" onchange="setAtBatPos(${_slideGameId},${p.id},${i},this.value)">${posOpts}</select>
+        <select style="${sel}" onchange="setAtBatRes(${_slideGameId},${p.id},${i},this.value)">${resOpts}</select>
+      </div>
+      ${showWarn ? `<div style="font-size:11px;color:var(--red);margin-top:8px;">⚠ 位置を選択してください</div>` : ''}
     </div>`;
   }).join('');
+
+  const filled = stat.atBats.filter(a=>a&&a.trim()).length;
+
+  body.innerHTML = `
+    <div class="player-nav">
+      <button class="nav-btn${_slidePlayerIdx===0?' nav-disabled':''}" onclick="slidePrev()">‹</button>
+      <div class="player-center">
+        <div class="player-big-num">${p.number}</div>
+        <div class="player-big-name">${p.name}</div>
+        <div class="player-big-pos">${p.pos}</div>
+        <div class="slide-dots">
+          ${_slidePlayerList.map((_,i) => `<div class="slide-dot${i===_slidePlayerIdx?' active':''}"></div>`).join('')}
+        </div>
+      </div>
+      <button class="nav-btn${_slidePlayerIdx===total-1?' nav-disabled':''}" onclick="slideNext()">›</button>
+    </div>
+    <div class="pa-wrap"><span class="pa-badge">${filled} / ${stat.pa} 打席入力済</span></div>
+    ${rows}
+    <button class="btn-add-ab" onclick="addAtBat(${_slideGameId},${p.id})">＋ 打席を追加</button>
+    <div class="swipe-hint">← スワイプで選手を切り替え →</div>
+  `;
 }
 
 async function setAtBatPos(gameId, pid, idx, posVal) {
