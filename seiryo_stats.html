@@ -111,6 +111,7 @@
     transition: all 0.2s;
   }
   .btn-primary { background: var(--accent); color: #000; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
   .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); font-size: 12px; padding: 6px 12px; }
   .form-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
 
@@ -141,7 +142,7 @@
     <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);letter-spacing:3px;margin-bottom:8px;">⚾ BALLSTATS</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:28px;">SEIRYO 専用ページ</div>
     <input type="password" id="pw-input" placeholder="パスワード"
-      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:16px;text-align:center;margin-bottom:12px;"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:16px;font-family:inherit;outline:none;text-align:center;margin-bottom:12px;"
       onkeydown="if(event.key==='Enter')checkPassword()">
     <button onclick="checkPassword()" class="btn btn-primary" style="width:100%;">ログイン</button>
     <div id="pw-error" style="display:none;color:var(--red);font-size:13px;margin-top:10px;">パスワードが違います</div>
@@ -293,9 +294,8 @@ function renderStats() {
       const s = g.stats.find(st => st.pid === p.id);
       if(s) {
         pa += s.pa || 0; rbi += s.rbi || 0; sb += s.sb || 0;
-        // 打席データからの集計（簡易ロジック）
-        h += (s.h || 0); // 直接入力の安打
-        ab += (s.ab || 0); // 直接入力の打数
+        h += (s.h || 0);
+        ab += (s.ab || 0);
       }
     });
     const avg = ab > 0 ? (h/ab).toFixed(3).replace(/^0/, '') : '.000';
@@ -329,11 +329,48 @@ function renderGames() {
 function renderPlayerList() {
   const sorted = [...players].sort((a,b) => a.number - b.number);
   document.getElementById('player-list-tbody').innerHTML = sorted.map(p => `
-    <tr>
-      <td>${p.number}</td><td style="text-align:left;">${p.name}</td><td><span class="badge">${p.pos}</span></td>
-      <td><button class="btn btn-danger" style="padding:4px 8px;" onclick="deletePlayer(${p.id})">削除</button></td>
+    <tr id="row-${p.id}">
+      <td>${p.number}</td>
+      <td style="text-align:left;">${p.name}</td>
+      <td><span class="badge">${p.pos}</span></td>
+      <td style="display:flex; gap:5px; justify-content:center;">
+        <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="editPlayerMode(${p.id})">編集</button>
+        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deletePlayer(${p.id})">削除</button>
+      </td>
     </tr>
   `).join('');
+}
+
+function editPlayerMode(id) {
+  const p = players.find(x => x.id === id);
+  const row = document.getElementById(`row-${id}`);
+  row.innerHTML = `
+    <td><input type="number" id="edit-num-${id}" value="${p.number}" style="width:50px; background:#000; color:white; border:1px solid #333; text-align:center;"></td>
+    <td><input type="text" id="edit-name-${id}" value="${p.name}" style="width:100%; background:#000; color:white; border:1px solid #333;"></td>
+    <td>
+      <select id="edit-pos-${id}" style="background:#000; color:white; border:1px solid #333;">
+        <option ${p.pos==='投手'?'selected':''}>投手</option>
+        <option ${p.pos==='捕手'?'selected':''}>捕手</option>
+        <option ${p.pos==='内野手'?'selected':''}>内野手</option>
+        <option ${p.pos==='外野手'?'selected':''}>外野手</option>
+      </select>
+    </td>
+    <td style="display:flex; gap:5px; justify-content:center;">
+      <button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="updatePlayer(${id})">保存</button>
+      <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="renderPlayerList()">取消</button>
+    </td>
+  `;
+}
+
+async function updatePlayer(id) {
+  const p = players.find(x => x.id === id);
+  p.number = document.getElementById(`edit-num-${id}`).value;
+  p.name = document.getElementById(`edit-name-${id}`).value;
+  p.pos = document.getElementById(`edit-pos-${id}`).value;
+  
+  await saveToGAS('players', players);
+  renderAll();
+  showToast('選手情報を更新しました');
 }
 
 function renderAddForm() {
