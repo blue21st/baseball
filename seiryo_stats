@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>野球成績管理 - SEIRYO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #e8c840;
+    --accent2: #f97316;
+    --text: #f0f4ff;
+    --muted: #6b7a99;
+    --border: rgba(255,255,255,0.08);
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+  .logo span { color: var(--text); }
+  .main { max-width: 1100px; margin: 0 auto; padding: 32px 16px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface); border-radius: 10px; padding: 4px; width: fit-content; }
+  .tab {
+    padding: 8px 20px; border-radius: 7px; border: none; cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 500;
+    background: transparent; color: var(--muted); transition: all 0.2s;
+  }
+  .tab.active { background: var(--accent); color: #000; }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* Panel */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Stats overview cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 16px;
+  }
+  .stat-card .label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-card .value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); }
+  .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Table */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--surface2); }
+  th {
+    padding: 12px 14px; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); text-align: center;
+    font-weight: 500; white-space: nowrap;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 13px 14px; font-size: 14px; text-align: center;
+    border-top: 1px solid var(--border); white-space: nowrap;
+  }
+  td:first-child { text-align: left; font-weight: 500; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); margin-right: 10px; }
+  .player-name { font-weight: 700; }
+  .player-pos { font-size: 11px; color: var(--muted); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 700; background: var(--surface2); color: var(--muted);
+  }
+
+  /* Forms */
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; }
+  .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--accent); margin-bottom: 20px; letter-spacing: 2px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--muted); letter-spacing: 0.5px; }
+  .form-group input, .form-group select {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; outline: none;
+  }
+  .btn {
+    padding: 11px 24px; border-radius: 8px; border: none; cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 14px;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); font-size: 12px; padding: 6px 12px; }
+  .form-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--green); color: #fff; padding: 12px 20px;
+    border-radius: 10px; font-size: 14px; font-weight: 500;
+    transform: translateY(80px); opacity: 0; transition: all 0.3s;
+    z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 600px) {
+    .main { padding: 16px 10px; }
+    .tabs { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .tab { padding: 9px 4px; font-size: 12px; text-align: center; }
+    .form-grid { grid-template-columns: 1fr; }
+    .table-wrap { overflow-x: auto; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div id="lock-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 32px;width:90%;max-width:360px;text-align:center;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);letter-spacing:3px;margin-bottom:8px;">⚾ BALLSTATS</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:28px;">SEIRYO 専用ページ</div>
+    <input type="password" id="pw-input" placeholder="パスワード"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:16px;text-align:center;margin-bottom:12px;"
+      onkeydown="if(event.key==='Enter')checkPassword()">
+    <button onclick="checkPassword()" class="btn btn-primary" style="width:100%;">ログイン</button>
+    <div id="pw-error" style="display:none;color:var(--red);font-size:13px;margin-top:10px;">パスワードが違います</div>
+  </div>
+</div>
+
+<div id="app-content" style="display:none;">
+<header>
+  <div class="logo">⚾ BALL<span>STATS</span> SEIRYO</div>
+</header>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('stats')">成績一覧</button>
+    <button class="tab" onclick="switchTab('register')">選手一覧</button>
+    <button class="tab" onclick="switchTab('games')">試合一覧</button>
+    <button class="tab" onclick="switchTab('add')">試合追加</button>
+  </div>
+
+  <div class="panel active" id="panel-stats">
+    <div class="stats-grid" id="overview-cards"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left">選手</th>
+            <th>打率</th><th>打点</th><th>本塁打</th><th>打数</th><th>安打</th><th>盗塁</th><th>OPS</th>
+          </tr>
+        </thead>
+        <tbody id="stats-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-games">
+    <div id="game-list-wrap"></div>
+  </div>
+
+  <div class="panel" id="panel-add">
+    <div class="form-card">
+      <div class="form-title">試合成績を入力</div>
+      <div class="form-grid">
+        <div class="form-group"><label>年度</label><input type="number" id="game-season" value="2026"></div>
+        <div class="form-group"><label>種別</label><select id="game-type"><option>公式戦</option><option>練習試合</option></select></div>
+        <div class="form-group"><label>試合日</label><input type="date" id="game-date"></div>
+        <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="○○チーム"></div>
+        <div class="form-group"><label>自軍得点</label><input type="number" id="game-score-us" value="0"></div>
+        <div class="form-group"><label>敵軍得点</label><input type="number" id="game-score-them" value="0"></div>
+      </div>
+      <div id="player-stats-form" style="margin-top:20px;"></div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveGame()">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-register">
+    <div class="form-card" style="margin-bottom:20px;">
+      <div class="form-title">選手を追加</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input type="number" id="reg-number" placeholder="背番号" style="width:80px; padding:10px; background:var(--bg); border:1px solid var(--border); color:white;">
+        <input type="text" id="reg-name" placeholder="氏名" style="flex:1; padding:10px; background:var(--bg); border:1px solid var(--border); color:white;">
+        <select id="reg-pos" style="padding:10px; background:var(--bg); border:1px solid var(--border); color:white;">
+          <option>投手</option><option>捕手</option><option>内野手</option><option>外野手</option>
+        </select>
+        <button class="btn btn-primary" onclick="addPlayer()">追加</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>背番号</th><th style="text-align:left;">氏名</th><th>位置</th><th>操作</th></tr></thead>
+        <tbody id="player-list-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- 通信設定 ---
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbySJYE7XzjON6Vyn1dGcBPzw2kRXatzcPSrSzXrrTr0CDpSaq4uQy7Yaml1Y7Ggx2p9FA/exec';
+const CORRECT_PASSWORD = 'seiryo';
+
+let players = [];
+let games = [];
+let _isLoaded = false;
+
+function checkPassword() {
+  if (document.getElementById('pw-input').value === CORRECT_PASSWORD) {
+    sessionStorage.setItem('bs_auth_seiryo', '1');
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    loadFromGAS();
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('game-date').value = today;
+  if (sessionStorage.getItem('bs_auth_seiryo') === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    loadFromGAS();
+  }
+});
+
+async function loadFromGAS() {
+  showToast('データを読み込み中...');
+  try {
+    const res = await fetch(GAS_URL);
+    const data = await res.json();
+    players = data.players || [];
+    games = data.games || [];
+    _isLoaded = true;
+    renderAll();
+    showToast('読み込み完了！');
+  } catch(e) {
+    showToast('読み込みエラー');
+  }
+}
+
+async function saveToGAS(type, data) {
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ type: type, data: data })
+    });
+  } catch(e) {
+    showToast('保存に失敗しました');
+  }
+}
+
+// --- 表示ロジック ---
+function renderAll() {
+  renderStats();
+  renderGames();
+  renderPlayerList();
+  renderAddForm();
+}
+
+function renderStats() {
+  let totalH = 0, totalAB = 0;
+  const rows = players.map(p => {
+    let pa=0, ab=0, h=0, rbi=0, hr=0, sb=0, tb=0, bb=0, hbp=0;
+    games.forEach(g => {
+      const s = g.stats.find(st => st.pid === p.id);
+      if(s) {
+        pa += s.pa || 0; rbi += s.rbi || 0; sb += s.sb || 0;
+        // 打席データからの集計（簡易ロジック）
+        h += (s.h || 0); // 直接入力の安打
+        ab += (s.ab || 0); // 直接入力の打数
+      }
+    });
+    const avg = ab > 0 ? (h/ab).toFixed(3).replace(/^0/, '') : '.000';
+    return `<tr>
+      <td style="text-align:left;"><span class="player-num">${p.number}</span>${p.name}</td>
+      <td>${avg}</td><td>${rbi}</td><td>${hr}</td><td>${ab}</td><td>${h}</td><td>${sb}</td><td>-</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('overview-cards').innerHTML = `
+    <div class="stat-card"><div class="label">試合数</div><div class="value">${games.length}</div></div>
+    <div class="stat-card"><div class="label">登録選手</div><div class="value">${players.length}</div></div>
+  `;
+  document.getElementById('stats-tbody').innerHTML = rows || '<tr><td colspan="8">データがありません</td></tr>';
+}
+
+function renderGames() {
+  const wrap = document.getElementById('game-list-wrap');
+  wrap.innerHTML = games.map(g => `
+    <div class="form-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding: 15px;">
+      <div>
+        <div style="font-size:12px; color:var(--muted);">${g.date}</div>
+        <div style="font-weight:bold;">vs ${g.opponent}</div>
+      </div>
+      <div style="font-family:'Bebas Neue'; font-size:24px; color:var(--accent);">${g.us} - ${g.them}</div>
+      <button class="btn btn-danger" onclick="deleteGame(${g.id})">削除</button>
+    </div>
+  `).reverse().join('') || '<p style="text-align:center; padding:20px; color:var(--muted);">試合データがありません</p>';
+}
+
+function renderPlayerList() {
+  const sorted = [...players].sort((a,b) => a.number - b.number);
+  document.getElementById('player-list-tbody').innerHTML = sorted.map(p => `
+    <tr>
+      <td>${p.number}</td><td style="text-align:left;">${p.name}</td><td><span class="badge">${p.pos}</span></td>
+      <td><button class="btn btn-danger" style="padding:4px 8px;" onclick="deletePlayer(${p.id})">削除</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderAddForm() {
+  const wrap = document.getElementById('player-stats-form');
+  const sorted = [...players].sort((a,b) => a.number - b.number);
+  wrap.innerHTML = '<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px; font-size:10px; color:var(--muted); text-align:center;"><div>選手</div><div>打席</div><div>打数</div><div>安打</div><div>打点</div></div>' + 
+  sorted.map(p => `
+    <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px; align-items:center;">
+      <div style="font-size:13px;">${p.number} ${p.name}</div>
+      <input type="number" id="pa-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="ab-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="h-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="rbi-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
+    </div>
+  `).join('');
+}
+
+async function addPlayer() {
+  const num = document.getElementById('reg-number').value;
+  const name = document.getElementById('reg-name').value;
+  const pos = document.getElementById('reg-pos').value;
+  if(!name) return;
+  players.push({ id: Date.now(), number: num, name: name, pos: pos });
+  await saveToGAS('players', players);
+  renderAll();
+  showToast('選手を追加しました');
+}
+
+async function deletePlayer(id) {
+  if(!confirm('選手を削除しますか？')) return;
+  players = players.filter(p => p.id !== id);
+  await saveToGAS('players', players);
+  renderAll();
+}
+
+async function saveGame() {
+  const g = {
+    id: Date.now(),
+    season: document.getElementById('game-season').value,
+    type: document.getElementById('game-type').value,
+    date: document.getElementById('game-date').value,
+    opponent: document.getElementById('game-opponent').value,
+    us: parseInt(document.getElementById('game-score-us').value || 0),
+    them: parseInt(document.getElementById('game-score-them').value || 0),
+    stats: players.map(p => ({
+      pid: p.id,
+      pa: parseInt(document.getElementById(`pa-${p.id}`).value || 0),
+      ab: parseInt(document.getElementById(`ab-${p.id}`).value || 0),
+      h: parseInt(document.getElementById(`h-${p.id}`).value || 0),
+      rbi: parseInt(document.getElementById(`rbi-${p.id}`).value || 0),
+      atBats: []
+    }))
+  };
+  games.push(g);
+  await saveToGAS('games', games);
+  renderAll();
+  switchTab('games');
+  showToast('試合を保存しました');
+}
+
+async function deleteGame(id) {
+  if(!confirm('試合データを削除しますか？')) return;
+  games = games.filter(g => g.id !== id);
+  await saveToGAS('games', games);
+  renderAll();
+}
+
+function switchTab(name) {
+  const names = ['stats','register','games','add'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
