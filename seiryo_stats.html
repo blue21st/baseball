@@ -2,136 +2,206 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>野球成績管理 - SEIRYO</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235;
-    --accent: #e8c840; --text: #f0f4ff; --muted: #6b7a99;
-    --border: rgba(255,255,255,0.08); --green: #22c55e; --red: #ef4444;
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #e8c840;
+    --text: #f0f4ff;
+    --muted: #6b7a99;
+    --border: rgba(255,255,255,0.08);
+    --green: #22c55e;
+    --red: #ef4444;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
-  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; overflow-x: hidden; }
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; height: 60px; position: sticky; top: 0; z-index: 100; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); }
-  .main { max-width: 1100px; margin: 0 auto; padding: 12px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; }
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; align-items: center; height: 60px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--accent); }
+  .logo span { color: var(--text); }
+  .main { max-width: 900px; margin: 0 auto; padding: 32px 16px; }
 
-  /* Tabs */
-  .tabs { display: flex; gap: 4px; margin-bottom: 15px; background: var(--surface); border-radius: 10px; padding: 4px; }
-  .tab { flex: 1; padding: 12px 4px; border-radius: 7px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; background: transparent; color: var(--muted); }
-  .tab.active { background: var(--accent); color: #000 !important; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--surface); border-radius: 10px; padding: 4px; width: fit-content; }
+  .tab {
+    padding: 8px 20px; border-radius: 7px; border: none; cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; font-weight: 500;
+    background: transparent; color: var(--muted); transition: all 0.2s;
+  }
+  .tab.active { background: var(--accent); color: #000; }
+  .tab:hover:not(.active) { color: var(--text); }
 
-  /* Panel Control */
-  .panel { display: none !important; }
-  .panel.active { display: block !important; }
+  .panel { display: none; }
+  .panel.active { display: block; }
 
-  /* Table */
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; min-width: 600px; }
-  th { padding: 10px; font-size: 10px; color: var(--muted); background: var(--surface2); text-align: center; }
-  td { padding: 10px; font-size: 13px; border-top: 1px solid var(--border); text-align: center; }
-  
-  /* Cards */
-  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 12px; }
-  .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); margin-bottom: 12px; }
-  select, input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text); font-size: 16px; outline: none; }
-  
-  .btn { padding: 12px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 13px; display: inline-block; text-align: center; width: 100%; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 16px; }
+  .stat-card .label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-card .value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--surface2); }
+  th { padding: 12px 14px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); text-align: center; font-weight: 500; white-space: nowrap; }
+  th:first-child { text-align: left; }
+  td { padding: 13px 14px; font-size: 14px; text-align: center; border-top: 1px solid var(--border); white-space: nowrap; }
+  td:first-child { text-align: left; font-weight: 500; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); margin-right: 10px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: var(--surface2); color: var(--muted); }
+
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--accent); margin-bottom: 20px; letter-spacing: 2px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--muted); }
+  .form-group input, .form-group select {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; outline: none;
+  }
+  .btn { padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 14px; transition: all 0.2s; }
   .btn-primary { background: var(--accent); color: #000; }
-  .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); width: auto; }
-  .btn-danger { background: transparent; color: var(--red); border: 1px solid var(--red); font-size: 11px; padding: 5px 10px; width: auto; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); font-size: 12px; padding: 6px 12px; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
 
-  /* At Bat Details */
-  .at-bat-row { display: grid; grid-template-columns: 20px 1fr 1.5fr; gap: 4px; align-items: center; background: var(--surface2); padding: 6px; border-radius: 6px; margin-top: 4px; }
-  .at-bat-num { font-size: 10px; color: var(--accent); font-weight: bold; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 999; }
+  .toast.show { transform: translateY(0); opacity: 1; }
 
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--green); color: #fff; padding: 10px 20px; border-radius: 25px; transition: 0.3s; z-index: 999; font-size: 12px; }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+  .game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+  .game-card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
+  .game-info .date { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .game-info .opponent { font-weight: 700; font-size: 15px; }
+  .game-info .type-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--surface2); color: var(--muted); margin-left: 8px; vertical-align: middle; }
+  .game-score { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); }
+  .game-score.lose { color: var(--red); }
+  .game-actions { display: flex; gap: 8px; align-items: center; }
+
+  .stats-panel { display: none; border-top: 1px solid var(--border); padding: 20px; background: var(--surface2); }
+  .stats-panel.open { display: block; }
+  .stats-panel-title { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+
+  .player-stats-grid { display: grid; gap: 6px; }
+  .ps-header { display: grid; grid-template-columns: 1fr 60px 60px 60px; gap: 8px; font-size: 11px; color: var(--muted); text-align: center; padding: 0 4px 4px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+  .ps-header div:first-child { text-align: left; }
+  .ps-row { display: grid; grid-template-columns: 1fr 60px 60px 60px; gap: 8px; align-items: center; padding: 4px; border-radius: 6px; }
+  .ps-row:hover { background: rgba(255,255,255,0.03); }
+  .ps-name { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .ps-num { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--muted); min-width: 24px; }
+  .ps-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 4px; color: var(--text); font-size: 14px; text-align: center; outline: none; font-family: 'Noto Sans JP', sans-serif; }
+  .ps-input:focus { border-color: var(--accent); }
+  .stats-save-row { display: flex; justify-content: flex-end; margin-top: 16px; gap: 8px; }
+
+  .player-add-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .player-add-row input, .player-add-row select { padding: 10px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
+
+  @media (max-width: 600px) {
+    .main { padding: 16px 10px; }
+    .tabs { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .tab { padding: 9px 4px; font-size: 12px; text-align: center; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .game-score { font-size: 22px; }
+    .game-card-header { flex-wrap: wrap; gap: 10px; }
+    .ps-header, .ps-row { grid-template-columns: 1fr 52px 52px 52px; gap: 5px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- ロック画面 -->
 <div id="lock-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);padding:30px;border-radius:16px;text-align:center;width:85%;max-width:300px;">
-    <div style="font-family:'Bebas Neue';font-size:28px;color:var(--accent);margin-bottom:20px;">BALLSTATS SEIRYO</div>
-    <input type="password" id="pw-input" placeholder="Password" style="text-align:center;margin-bottom:15px;">
-    <button onclick="checkPassword()" class="btn btn-primary">LOGIN</button>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 32px;width:90%;max-width:360px;text-align:center;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);letter-spacing:3px;margin-bottom:8px;">⚾ BALLSTATS</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:28px;">SEIRYO 専用ページ</div>
+    <input type="password" id="pw-input" placeholder="パスワード"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:16px;font-family:inherit;outline:none;text-align:center;margin-bottom:12px;"
+      onkeydown="if(event.key==='Enter')checkPassword()">
+    <button type="button" onclick="checkPassword()" class="btn btn-primary" style="width:100%;">ログイン</button>
+    <div id="pw-error" style="display:none;color:var(--red);font-size:13px;margin-top:10px;">パスワードが違います</div>
   </div>
 </div>
 
 <div id="app-content" style="display:none;">
-  <header><div class="logo">⚾ BALLSTATS SEIRYO</div></header>
-  <div class="main">
-    <div class="tabs">
-      <button class="tab active" id="tab-stats" onclick="switchTab('stats')">成績一覧</button>
-      <button class="tab" id="tab-register" onclick="switchTab('register')">選手管理</button>
-      <button class="tab" id="tab-games" onclick="switchTab('games')">試合一覧</button>
-    </div>
+<header>
+  <div class="logo">⚾ BALL<span>STATS</span> SEIRYO</div>
+</header>
 
-    <div class="panel active" id="panel-stats">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th style="text-align:left">選手</th><th>打率</th><th>打席</th><th>安打</th><th>得点</th><th>打点</th><th>盗塁</th></tr></thead>
-          <tbody id="stats-tbody"></tbody>
-        </table>
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('stats')">成績一覧</button>
+    <button class="tab" onclick="switchTab('register')">選手一覧</button>
+    <button class="tab" onclick="switchTab('games')">試合一覧</button>
+    <button class="tab" onclick="switchTab('add')">試合追加</button>
+  </div>
+
+  <!-- 成績一覧 -->
+  <div class="panel active" id="panel-stats">
+    <div class="stats-grid" id="overview-cards"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left">選手</th>
+            <th>打率</th><th>打点</th><th>打数</th><th>安打</th>
+          </tr>
+        </thead>
+        <tbody id="stats-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 試合一覧 -->
+  <div class="panel" id="panel-games">
+    <div id="game-list-wrap"></div>
+  </div>
+
+  <!-- 試合追加 -->
+  <div class="panel" id="panel-add">
+    <div class="form-card">
+      <div class="form-title">試合を追加</div>
+      <div class="form-grid">
+        <div class="form-group"><label>年度</label><input type="number" id="game-season" value="2026"></div>
+        <div class="form-group"><label>種別</label><select id="game-type"><option>公式戦</option><option>練習試合</option></select></div>
+        <div class="form-group"><label>試合日</label><input type="date" id="game-date"></div>
+        <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="○○チーム"></div>
+        <div class="form-group"><label>自軍得点</label><input type="number" id="game-score-us" value="0"></div>
+        <div class="form-group"><label>敵軍得点</label><input type="number" id="game-score-them" value="0"></div>
+      </div>
+      <div style="margin-top:20px;text-align:right;">
+        <button class="btn btn-primary" onclick="saveGame()">試合を登録する</button>
+      </div>
+      <div style="margin-top:16px;padding:14px 16px;background:var(--surface2);border-radius:10px;font-size:13px;color:var(--muted);">
+        💡 試合登録後、「試合一覧」から選手の成績を入力できます
       </div>
     </div>
+  </div>
 
-    <div class="panel" id="panel-games">
-      <button class="btn btn-primary" style="margin-bottom:15px;" onclick="switchTab('add-game')">＋ 試合登録</button>
-      <div id="game-list-wrap"></div>
-    </div>
-
-    <div class="panel" id="panel-add-game">
-      <div class="form-card">
-        <div class="form-title">新規試合登録</div>
-        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted);">日付</label><input type="date" id="game-date"></div>
-        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted);">対戦相手</label><input type="text" id="game-opponent" placeholder="相手チーム"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-          <div><label style="font-size:11px;color:var(--muted);">自軍</label><select id="game-score-us"></select></div>
-          <div><label style="font-size:11px;color:var(--muted);">敵軍</label><select id="game-score-them"></select></div>
-        </div>
-        <button class="btn btn-primary" onclick="saveGame()">登録して一覧へ</button>
-        <button class="btn btn-outline" style="width:100%;margin-top:8px;border-color:#333;color:#666;" onclick="switchTab('games')">キャンセル</button>
+  <!-- 選手一覧 -->
+  <div class="panel" id="panel-register">
+    <div class="form-card" style="margin-bottom:20px;">
+      <div class="form-title">選手を追加</div>
+      <div class="player-add-row">
+        <input type="number" id="reg-number" placeholder="背番号" style="width:80px;">
+        <input type="text" id="reg-name" placeholder="氏名" style="flex:1;">
+        <select id="reg-pos">
+          <option>投手</option><option>捕手</option><option>内野手</option><option>外野手</option>
+        </select>
+        <button class="btn btn-primary" onclick="addPlayer()">追加</button>
       </div>
     </div>
-
-    <div class="panel" id="panel-edit-stats">
-      <div class="form-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-          <div class="form-title" id="edit-stats-title" style="margin-bottom:0;">成績入力</div>
-          <button class="btn btn-outline" style="padding:5px 10px;font-size:11px;" onclick="switchTab('games')">戻る</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th style="text-align:left">選手</th><th>打席詳細 (方向/結果)</th><th>得点</th><th>打点</th><th>盗企</th><th>盗塁</th></tr></thead>
-            <tbody id="player-edit-stats-list"></tbody>
-          </table>
-        </div>
-        <button class="btn btn-primary" onclick="updateGameStats()">成績を保存する</button>
-      </div>
-    </div>
-
-    <div class="panel" id="panel-register">
-      <button class="btn btn-primary" style="margin-bottom:15px;" onclick="switchTab('add-player')">＋ 選手を追加</button>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>背番号</th><th style="text-align:left;">氏名</th><th>位置</th><th>操作</th></tr></thead>
-          <tbody id="player-list-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="panel" id="panel-add-player">
-      <div class="form-card">
-        <div class="form-title">選手登録</div>
-        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted);">背番号</label><select id="reg-number"></select></div>
-        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted);">氏名</label><input type="text" id="reg-name" placeholder="例：山田 太郎"></div>
-        <div style="margin-bottom:15px;"><label style="font-size:11px;color:var(--muted);">位置</label><select id="reg-pos"><option>投手</option><option>捕手</option><option>内野手</option><option>外野手</option></select></div>
-        <button class="btn btn-primary" onclick="addPlayer()">登録</button>
-        <button class="btn btn-outline" style="width:100%;margin-top:8px;border-color:#333;color:#666;" onclick="switchTab('register')">キャンセル</button>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>背番号</th><th style="text-align:left;">氏名</th><th>位置</th><th>操作</th></tr></thead>
+        <tbody id="player-list-tbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -139,4 +209,294 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const GAS_URL = '
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbySJYE7XzjON6Vyn1dGcBPzw2kRXatzcPSrSzXrrTr0CDpSaq4uQy7Yaml1Y7Ggx2p9FA/exec';
+const CORRECT_PASSWORD = 'seiryo';
+
+let players = [];
+let games = [];
+let openGameId = null;
+
+function checkPassword() {
+  const input = document.getElementById('pw-input').value.trim();
+  if (input === CORRECT_PASSWORD) {
+    sessionStorage.setItem('bs_auth_seiryo', '1');
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    document.getElementById('pw-error').style.display = 'none';
+    loadFromGAS();
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('game-date').value = today;
+  if (sessionStorage.getItem('bs_auth_seiryo') === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    loadFromGAS();
+  }
+});
+
+async function loadFromGAS() {
+  showToast('データを読み込み中...');
+  try {
+    const res = await fetch(GAS_URL);
+    const data = await res.json();
+    players = data.players || [];
+    games = data.games || [];
+    renderAll();
+    showToast('読み込み完了！');
+  } catch(e) {
+    showToast('読み込みエラー');
+  }
+}
+
+async function saveToGAS(type, data) {
+  try {
+    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type, data }) });
+  } catch(e) {
+    showToast('保存に失敗しました');
+  }
+}
+
+function renderAll() {
+  renderStats();
+  renderGames();
+  renderPlayerList();
+}
+
+function renderStats() {
+  const rows = players.map(p => {
+    let ab=0, h=0, rbi=0;
+    games.forEach(g => {
+      const s = g.stats && g.stats.find(st => st.pid === p.id);
+      if(s) { ab += s.ab||0; h += s.h||0; rbi += s.rbi||0; }
+    });
+    const avg = ab > 0 ? (h/ab).toFixed(3).replace(/^0/, '') : '.---';
+    return `<tr>
+      <td style="text-align:left;"><span class="player-num">${p.number}</span>${p.name}</td>
+      <td style="font-family:'Bebas Neue';font-size:18px;color:var(--accent)">${avg}</td>
+      <td>${rbi}</td><td>${ab}</td><td>${h}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('overview-cards').innerHTML = `
+    <div class="stat-card"><div class="label">試合数</div><div class="value">${games.length}</div></div>
+    <div class="stat-card"><div class="label">登録選手</div><div class="value">${players.length}</div></div>
+  `;
+  document.getElementById('stats-tbody').innerHTML = rows || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);">データがありません</td></tr>';
+}
+
+function renderGames() {
+  const wrap = document.getElementById('game-list-wrap');
+  const sorted = [...games].reverse();
+  if (!sorted.length) {
+    wrap.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted);">試合データがありません</p>';
+    return;
+  }
+  wrap.innerHTML = sorted.map(g => {
+    const isWin = g.us > g.them;
+    const scoreClass = g.us < g.them ? 'lose' : '';
+    const hasStats = g.stats && g.stats.some(s => s.ab > 0 || s.h > 0 || s.rbi > 0);
+    return `
+    <div class="game-card" id="gcard-${g.id}">
+      <div class="game-card-header">
+        <div class="game-info">
+          <div class="date">${g.date} <span class="type-badge">${g.type||'公式戦'}</span></div>
+          <div class="opponent">vs ${g.opponent}</div>
+        </div>
+        <div class="game-score ${scoreClass}">${g.us} - ${g.them}</div>
+        <div class="game-actions">
+          <button class="btn btn-outline btn-sm" onclick="toggleStatsPanel(${g.id})">
+            ${hasStats ? '✏️ 成績編集' : '📝 成績入力'}
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteGame(${g.id})">削除</button>
+        </div>
+      </div>
+      <div class="stats-panel ${openGameId === g.id ? 'open' : ''}" id="spanel-${g.id}">
+        ${buildStatsPanel(g)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildStatsPanel(g) {
+  if (!players.length) return '<p style="color:var(--muted);font-size:13px;">先に選手を登録してください</p>';
+  const sorted = [...players].sort((a,b) => a.number - b.number);
+  const rows = sorted.map(p => {
+    const s = g.stats && g.stats.find(st => st.pid === p.id);
+    const ab  = s ? s.ab  : 0;
+    const h   = s ? s.h   : 0;
+    const rbi = s ? s.rbi : 0;
+    return `<div class="ps-row">
+      <div class="ps-name"><span class="ps-num">${p.number}</span>${p.name}</div>
+      <input class="ps-input" type="number" id="ps-ab-${g.id}-${p.id}"  value="${ab}"  min="0" placeholder="0">
+      <input class="ps-input" type="number" id="ps-h-${g.id}-${p.id}"   value="${h}"   min="0" placeholder="0">
+      <input class="ps-input" type="number" id="ps-rbi-${g.id}-${p.id}" value="${rbi}" min="0" placeholder="0">
+    </div>`;
+  }).join('');
+  return `
+    <div class="stats-panel-title">選手成績</div>
+    <div class="player-stats-grid">
+      <div class="ps-header"><div>選手</div><div>打数</div><div>安打</div><div>打点</div></div>
+      ${rows}
+    </div>
+    <div class="stats-save-row">
+      <button class="btn btn-outline btn-sm" onclick="toggleStatsPanel(${g.id})">閉じる</button>
+      <button class="btn btn-primary btn-sm" onclick="saveStats(${g.id})">保存する</button>
+    </div>`;
+}
+
+function toggleStatsPanel(gid) {
+  if (openGameId === gid) {
+    openGameId = null;
+    const panel = document.getElementById(`spanel-${gid}`);
+    if (panel) panel.classList.remove('open');
+  } else {
+    if (openGameId !== null) {
+      const prev = document.getElementById(`spanel-${openGameId}`);
+      if (prev) prev.classList.remove('open');
+    }
+    openGameId = gid;
+    const panel = document.getElementById(`spanel-${gid}`);
+    if (panel) {
+      panel.classList.add('open');
+      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  }
+}
+
+async function saveStats(gid) {
+  const g = games.find(x => x.id === gid);
+  if (!g) return;
+  if (!g.stats) g.stats = [];
+  players.forEach(p => {
+    const ab  = parseInt(document.getElementById(`ps-ab-${gid}-${p.id}`)?.value  || 0);
+    const h   = parseInt(document.getElementById(`ps-h-${gid}-${p.id}`)?.value   || 0);
+    const rbi = parseInt(document.getElementById(`ps-rbi-${gid}-${p.id}`)?.value || 0);
+    const idx = g.stats.findIndex(s => s.pid === p.id);
+    if (idx >= 0) {
+      g.stats[idx] = { ...g.stats[idx], ab, h, rbi };
+    } else {
+      g.stats.push({ pid: p.id, ab, h, rbi });
+    }
+  });
+  await saveToGAS('games', games);
+  renderAll();
+  openGameId = gid;
+  const panel = document.getElementById(`spanel-${gid}`);
+  if (panel) panel.classList.add('open');
+  showToast('成績を保存しました');
+}
+
+async function saveGame() {
+  const opponent = document.getElementById('game-opponent').value;
+  if (!opponent) { alert('対戦相手を入力してください'); return; }
+  const g = {
+    id: Date.now(),
+    season: document.getElementById('game-season').value,
+    type: document.getElementById('game-type').value,
+    date: document.getElementById('game-date').value,
+    opponent,
+    us: parseInt(document.getElementById('game-score-us').value || 0),
+    them: parseInt(document.getElementById('game-score-them').value || 0),
+    stats: []
+  };
+  games.push(g);
+  await saveToGAS('games', games);
+  openGameId = g.id;
+  renderAll();
+  switchTab('games');
+  showToast('試合を登録しました　→ 成績を入力してください');
+}
+
+async function deleteGame(id) {
+  if (!confirm('試合データを削除しますか？')) return;
+  games = games.filter(g => g.id !== id);
+  if (openGameId === id) openGameId = null;
+  await saveToGAS('games', games);
+  renderAll();
+}
+
+function renderPlayerList() {
+  const sorted = [...players].sort((a,b) => a.number - b.number);
+  document.getElementById('player-list-tbody').innerHTML = sorted.map(p => `
+    <tr id="row-${p.id}">
+      <td>${p.number}</td>
+      <td style="text-align:left;">${p.name}</td>
+      <td><span class="badge">${p.pos}</span></td>
+      <td style="display:flex;gap:5px;justify-content:center;">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="editPlayerMode(${p.id})">編集</button>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="deletePlayer(${p.id})">削除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function editPlayerMode(id) {
+  const p = players.find(x => x.id === id);
+  document.getElementById(`row-${id}`).innerHTML = `
+    <td><input type="number" id="edit-num-${id}" value="${p.number}" style="width:50px;background:#000;color:white;border:1px solid #333;text-align:center;padding:4px;border-radius:4px;"></td>
+    <td><input type="text" id="edit-name-${id}" value="${p.name}" style="width:100%;background:#000;color:white;border:1px solid #333;padding:4px;border-radius:4px;"></td>
+    <td>
+      <select id="edit-pos-${id}" style="background:#000;color:white;border:1px solid #333;padding:4px;border-radius:4px;">
+        <option ${p.pos==='投手'?'selected':''}>投手</option>
+        <option ${p.pos==='捕手'?'selected':''}>捕手</option>
+        <option ${p.pos==='内野手'?'selected':''}>内野手</option>
+        <option ${p.pos==='外野手'?'selected':''}>外野手</option>
+      </select>
+    </td>
+    <td style="display:flex;gap:5px;justify-content:center;">
+      <button class="btn btn-primary" style="padding:4px 10px;font-size:11px;" onclick="updatePlayer(${id})">保存</button>
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="renderPlayerList()">取消</button>
+    </td>`;
+}
+
+async function updatePlayer(id) {
+  const p = players.find(x => x.id === id);
+  p.number = document.getElementById(`edit-num-${id}`).value;
+  p.name   = document.getElementById(`edit-name-${id}`).value;
+  p.pos    = document.getElementById(`edit-pos-${id}`).value;
+  await saveToGAS('players', players);
+  renderAll();
+  showToast('選手情報を更新しました');
+}
+
+async function addPlayer() {
+  const num  = document.getElementById('reg-number').value;
+  const name = document.getElementById('reg-name').value.trim();
+  const pos  = document.getElementById('reg-pos').value;
+  if (!name) return;
+  players.push({ id: Date.now(), number: num, name, pos });
+  await saveToGAS('players', players);
+  document.getElementById('reg-name').value = '';
+  document.getElementById('reg-number').value = '';
+  renderAll();
+  showToast('選手を追加しました');
+}
+
+async function deletePlayer(id) {
+  if (!confirm('選手を削除しますか？')) return;
+  players = players.filter(p => p.id !== id);
+  await saveToGAS('players', players);
+  renderAll();
+}
+
+function switchTab(name) {
+  const names = ['stats','register','games','add'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</div>
+</body>
+</html>
