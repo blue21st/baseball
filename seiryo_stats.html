@@ -244,7 +244,7 @@ async function loadFromGAS() {
   try {
     const res = await fetch(GAS_URL);
     const data = await res.json();
-    players = data.players || [];
+    players = data.player || [];
     games = data.games || [];
     renderAll();
     showToast('読み込み完了！');
@@ -468,7 +468,7 @@ async function updatePlayer(id) {
   p.number = document.getElementById(`edit-num-${id}`).value;
   p.name   = document.getElementById(`edit-name-${id}`).value;
   p.pos    = document.getElementById(`edit-pos-${id}`).value;
-  await saveToGAS('players', players);
+  await saveToGAS('player', players);
   renderAll();
   showToast('選手情報を更新しました');
 }
@@ -479,7 +479,7 @@ async function addPlayer() {
   const pos  = document.getElementById('reg-pos').value;
   if (!name) return;
   players.push({ id: Date.now(), number: num, name, pos });
-  await saveToGAS('players', players);
+  await saveToGAS('player', players);
   document.getElementById('reg-name').value = '';
   document.getElementById('reg-number').value = '';
   renderAll();
@@ -489,7 +489,7 @@ async function addPlayer() {
 async function deletePlayer(id) {
   if (!confirm('選手を削除しますか？')) return;
   players = players.filter(p => p.id !== id);
-  await saveToGAS('players', players);
+  await saveToGAS('player', players);
   renderAll();
 }
 
