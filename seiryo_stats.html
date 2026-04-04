@@ -447,9 +447,7 @@ function getDetailsFromDOM(gid, pid) {
 function makeDetailRowHTML(gid, pid, idx, dir='', res='') {
   return `<span class="detail-num">${idx}</span>
     <select class="ps-input d-dir" style="width:80px;" onchange="updateResOpts(this)">${dirOpts(dir)}</select>
-    <select class="ps-input d-res" style="flex:1;">${resOptsForDir(dir, res)}</select>
-    <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;"
-      onclick="removeDetailRow(this,'${gid}','${pid}')">−</button>`;
+    <select class="ps-input d-res" style="flex:1;">${resOptsForDir(dir, res)}</select>`;
 }
 
 function removeDetailRow(btn, gid, pid) {
@@ -481,14 +479,22 @@ function renumDetail(gid, pid) {
   });
 }
 
-function toggleDetail(gid, pid) {
-  const sec  = document.getElementById(`dsec-${gid}-${pid}`);
+function syncDetailRows(gid, pid) {
+  const pa   = parseInt(document.getElementById(`ps-pa-${gid}-${pid}`)?.value || 0);
   const wrap = document.getElementById(`dwrap-${gid}-${pid}`);
-  if (!sec.classList.contains('open')) {
-    const pa  = parseInt(document.getElementById(`ps-pa-${gid}-${pid}`)?.value || 0);
-    const cur = wrap.children.length;
+  if (!wrap) return;
+  const cur  = wrap.children.length;
+  if (pa > cur) {
     for (let i = cur; i < pa; i++) addDetailRowSilent(gid, pid);
+  } else if (pa < cur) {
+    while (wrap.children.length > pa) wrap.lastChild.remove();
+    renumDetail(gid, pid);
   }
+}
+
+function toggleDetail(gid, pid) {
+  const sec = document.getElementById(`dsec-${gid}-${pid}`);
+  if (!sec.classList.contains('open')) syncDetailRows(gid, pid);
   sec.classList.toggle('open');
 }
 
@@ -530,7 +536,7 @@ function buildStatsPanel(g) {
             onclick="toggleDetail('${g.id}','${p.id}')">⚾ 打席詳細</button>
         </div>
         <div class="ps-card-stats">
-          <div class="ps-stat"><label>打席</label><select class="ps-input" id="ps-pa-${g.id}-${p.id}">${numOpts(pa)}</select></div>
+          <div class="ps-stat"><label>打席</label><select class="ps-input" id="ps-pa-${g.id}-${p.id}" onchange="syncDetailRows('${g.id}','${p.id}')">${numOpts(pa)}</select></div>
           <div class="ps-stat"><label>打点</label><select class="ps-input" id="ps-rbi-${g.id}-${p.id}">${numOpts(rbi)}</select></div>
           <div class="ps-stat"><label>得点</label><select class="ps-input" id="ps-run-${g.id}-${p.id}">${numOpts(run)}</select></div>
           <div class="ps-stat"><label>盗塁</label><select class="ps-input" id="ps-sb-${g.id}-${p.id}">${numOpts(sb)}</select></div>
@@ -538,8 +544,6 @@ function buildStatsPanel(g) {
         </div>
         <div class="detail-section${details.length ? ' open' : ''}" id="dsec-${g.id}-${p.id}">
           <div id="dwrap-${g.id}-${p.id}">${detailRows}</div>
-          <button class="btn btn-outline btn-sm" style="margin-top:8px;"
-            onclick="addDetailRow('${g.id}','${p.id}')">＋ 打席追加</button>
         </div>
       </div>`;
   }).join('');
