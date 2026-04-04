@@ -22,17 +22,20 @@
   .tab { flex: 1; padding: 12px 4px; border-radius: 7px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; background: transparent; color: var(--muted); }
   .tab.active { background: var(--accent); color: #000; }
 
+  /* Panel */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
   /* Table */
   .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; min-width: 650px; }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; }
   th { padding: 10px; font-size: 10px; color: var(--muted); background: var(--surface2); text-align: center; }
   td { padding: 10px; font-size: 13px; border-top: 1px solid var(--border); text-align: center; }
   
   /* Cards */
   .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 12px; }
   .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); margin-bottom: 12px; }
-  
-  select, input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text); font-size: 16px; outline: none; appearance: none; }
+  select, input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; color: var(--text); font-size: 16px; outline: none; }
   
   .btn { padding: 12px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 13px; display: inline-block; text-align: center; }
   .btn-primary { background: var(--accent); color: #000; width: 100%; }
@@ -43,7 +46,7 @@
   .at-bat-row { display: grid; grid-template-columns: 20px 1fr 1.5fr; gap: 4px; align-items: center; background: var(--surface2); padding: 6px; border-radius: 6px; margin-top: 4px; }
   .at-bat-num { font-size: 10px; color: var(--accent); font-weight: bold; }
 
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--green); color: #fff; padding: 10px 20px; border-radius: 25px; transition: 0.3s; z-index: 999; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--green); color: #fff; padding: 10px 20px; border-radius: 25px; transition: 0.3s; z-index: 999; font-size: 12px; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -134,6 +137,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// --- 通信設定 (発行した最新のURL) ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbySJYE7XzjON6Vyn1dGcBPzw2kRXatzcPSrSzXrrTr0CDpSaq4uQy7Yaml1Y7Ggx2p9FA/exec';
 const CORRECT_PASSWORD = 'seiryo';
 
@@ -158,7 +162,7 @@ async function loadFromGAS() {
     const data = await res.json();
     players = data.players || []; games = data.games || [];
     renderAll();
-  } catch(e) { showToast('通信エラー（許可を確認して下さい）'); }
+  } catch(e) { showToast('通信エラー（許可またはシート名を確認）'); }
 }
 
 async function saveToGAS(type, data) {
@@ -170,7 +174,6 @@ async function saveToGAS(type, data) {
 function renderAll() {
   const sortedP = [...players].sort((a,b) => a.number - b.number);
   
-  // 成績集計
   document.getElementById('stats-tbody').innerHTML = sortedP.map(p => {
     let pa=0, ab=0, h=0, sc=0, rb=0, sb=0;
     games.forEach(g => {
@@ -188,7 +191,6 @@ function renderAll() {
     return `<tr><td style="text-align:left"><b>${p.number}</b> ${p.name}</td><td style="color:var(--accent);font-weight:700;">${avg}</td><td>${pa}</td><td>${h}</td><td>${sc}</td><td>${rb}</td><td>${sb}</td></tr>`;
   }).join('');
 
-  // 試合一覧（成績入力ボタンを目立たせました）
   document.getElementById('game-list-wrap').innerHTML = games.map(g => `
     <div class="form-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -196,8 +198,8 @@ function renderAll() {
         <div style="font-family:'Bebas Neue';font-size:24px;color:var(--accent)">${g.us} - ${g.them}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="btn btn-outline" onclick="openStatsEditor(${g.id})">成績を入力する</button>
-        <button class="btn btn-danger" onclick="deleteGame(${g.id})">削除</button>
+        <button class="btn btn-outline" onclick="openStatsEditor(${g.id})">成績入力</button>
+        <button class="btn btn-danger" style="border:1px solid #333;color:#666;" onclick="deleteGame(${g.id})">削除</button>
       </div>
     </div>
   `).reverse().join('');
@@ -276,7 +278,7 @@ async function updateGameStats() {
     };
   });
   await saveToGAS('games', games);
-  renderAll(); switchTab('games'); showToast('保存しました');
+  renderAll(); switchTab('games'); showToast('保存完了');
 }
 
 async function saveGame() {
@@ -301,7 +303,7 @@ function editPlayerMode(id) {
   const p = players.find(x => x.id === id);
   const prow = document.getElementById(`prow-${id}`);
   prow.innerHTML = `<td colspan="3"><input type="text" id="en-${id}" value="${p.name}"></td>
-    <td><button class="btn btn-danger" onclick="deletePlayer(${id})">削除</button></td>`;
+    <td><button class="btn btn-danger" style="padding:5px;" onclick="deletePlayer(${id})">削除</button></td>`;
 }
 
 async function deletePlayer(id) {
