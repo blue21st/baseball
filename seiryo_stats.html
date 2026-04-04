@@ -68,7 +68,6 @@
   }
   .stat-card .label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
   .stat-card .value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); }
-  .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
   /* Table */
   .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
@@ -87,8 +86,6 @@
   td:first-child { text-align: left; font-weight: 500; }
   tr:hover td { background: rgba(255,255,255,0.02); }
   .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); margin-right: 10px; }
-  .player-name { font-weight: 700; }
-  .player-pos { font-size: 11px; color: var(--muted); }
   .badge {
     display: inline-block; padding: 2px 8px; border-radius: 4px;
     font-size: 11px; font-weight: 700; background: var(--surface2); color: var(--muted);
@@ -102,8 +99,8 @@
   .form-group label { font-size: 12px; color: var(--muted); letter-spacing: 0.5px; }
   .form-group input, .form-group select {
     background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px; color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; outline: none;
+    border-radius: 8px; padding: 12px 12px; color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif; font-size: 16px; outline: none;
   }
   .btn {
     padding: 11px 24px; border-radius: 8px; border: none; cursor: pointer;
@@ -127,10 +124,9 @@
 
   @media (max-width: 600px) {
     .main { padding: 16px 10px; }
-    .tabs { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .tabs { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
     .tab { padding: 9px 4px; font-size: 12px; text-align: center; }
     .form-grid { grid-template-columns: 1fr; }
-    .table-wrap { overflow-x: auto; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
@@ -156,10 +152,9 @@
 
 <div class="main">
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('stats')">成績一覧</button>
-    <button class="tab" onclick="switchTab('register')">選手一覧</button>
-    <button class="tab" onclick="switchTab('games')">試合一覧</button>
-    <button class="tab" onclick="switchTab('add')">試合追加</button>
+    <button class="tab active" id="tab-stats" onclick="switchTab('stats')">成績一覧</button>
+    <button class="tab" id="tab-register" onclick="switchTab('register')">選手一覧</button>
+    <button class="tab" id="tab-games" onclick="switchTab('games')">試合一覧</button>
   </div>
 
   <div class="panel active" id="panel-stats">
@@ -169,7 +164,7 @@
         <thead>
           <tr>
             <th style="text-align:left">選手</th>
-            <th>打率</th><th>打点</th><th>本塁打</th><th>打数</th><th>安打</th><th>盗塁</th><th>OPS</th>
+            <th>打席</th><th>打数</th><th>安打</th><th>打点</th><th>盗塁</th><th>打率</th>
           </tr>
         </thead>
         <tbody id="stats-tbody"></tbody>
@@ -178,23 +173,28 @@
   </div>
 
   <div class="panel" id="panel-games">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+      <button class="btn btn-primary" onclick="switchTab('add')">＋ 試合を追加</button>
+    </div>
     <div id="game-list-wrap"></div>
   </div>
 
   <div class="panel" id="panel-add">
     <div class="form-card">
-      <div class="form-title">試合成績を入力</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div class="form-title" style="margin-bottom:0;">試合成績を入力</div>
+        <button class="btn btn-outline" style="padding: 6px 12px; font-size:12px;" onclick="switchTab('games')">キャンセル</button>
+      </div>
       <div class="form-grid">
         <div class="form-group"><label>年度</label><input type="number" id="game-season" value="2026"></div>
         <div class="form-group"><label>種別</label><select id="game-type"><option>公式戦</option><option>練習試合</option></select></div>
         <div class="form-group"><label>試合日</label><input type="date" id="game-date"></div>
-        <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="○○チーム"></div>
+        <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="相手チーム名"></div>
         <div class="form-group"><label>自軍得点</label><input type="number" id="game-score-us" value="0"></div>
         <div class="form-group"><label>敵軍得点</label><input type="number" id="game-score-them" value="0"></div>
       </div>
-      <div id="player-stats-form" style="margin-top:20px;"></div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveGame()">保存する</button>
+        <button class="btn btn-primary" onclick="saveGame()">試合を保存する</button>
       </div>
     </div>
   </div>
@@ -223,7 +223,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// --- 通信設定 ---
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbySJYE7XzjON6Vyn1dGcBPzw2kRXatzcPSrSzXrrTr0CDpSaq4uQy7Yaml1Y7Ggx2p9FA/exec';
 const CORRECT_PASSWORD = 'seiryo';
 
@@ -278,30 +277,17 @@ async function saveToGAS(type, data) {
   }
 }
 
-// --- 表示ロジック ---
 function renderAll() {
   renderStats();
   renderGames();
   renderPlayerList();
-  renderAddForm();
 }
 
 function renderStats() {
-  let totalH = 0, totalAB = 0;
   const rows = players.map(p => {
-    let pa=0, ab=0, h=0, rbi=0, hr=0, sb=0, tb=0, bb=0, hbp=0;
-    games.forEach(g => {
-      const s = g.stats.find(st => st.pid === p.id);
-      if(s) {
-        pa += s.pa || 0; rbi += s.rbi || 0; sb += s.sb || 0;
-        h += (s.h || 0);
-        ab += (s.ab || 0);
-      }
-    });
-    const avg = ab > 0 ? (h/ab).toFixed(3).replace(/^0/, '') : '.000';
     return `<tr>
       <td style="text-align:left;"><span class="player-num">${p.number}</span>${p.name}</td>
-      <td>${avg}</td><td>${rbi}</td><td>${hr}</td><td>${ab}</td><td>${h}</td><td>${sb}</td><td>-</td>
+      <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>.000</td>
     </tr>`;
   }).join('');
 
@@ -309,7 +295,7 @@ function renderStats() {
     <div class="stat-card"><div class="label">試合数</div><div class="value">${games.length}</div></div>
     <div class="stat-card"><div class="label">登録選手</div><div class="value">${players.length}</div></div>
   `;
-  document.getElementById('stats-tbody').innerHTML = rows || '<tr><td colspan="8">データがありません</td></tr>';
+  document.getElementById('stats-tbody').innerHTML = rows || '<tr><td colspan="7">選手を登録してください</td></tr>';
 }
 
 function renderGames() {
@@ -317,7 +303,7 @@ function renderGames() {
   wrap.innerHTML = games.map(g => `
     <div class="form-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding: 15px;">
       <div>
-        <div style="font-size:12px; color:var(--muted);">${g.date}</div>
+        <div style="font-size:12px; color:var(--muted);">${g.date} [${g.type}]</div>
         <div style="font-weight:bold;">vs ${g.opponent}</div>
       </div>
       <div style="font-family:'Bebas Neue'; font-size:24px; color:var(--accent);">${g.us} - ${g.them}</div>
@@ -333,58 +319,10 @@ function renderPlayerList() {
       <td>${p.number}</td>
       <td style="text-align:left;">${p.name}</td>
       <td><span class="badge">${p.pos}</span></td>
-      <td style="display:flex; gap:5px; justify-content:center;">
-        <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="editPlayerMode(${p.id})">編集</button>
+      <td>
         <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deletePlayer(${p.id})">削除</button>
       </td>
     </tr>
-  `).join('');
-}
-
-function editPlayerMode(id) {
-  const p = players.find(x => x.id === id);
-  const row = document.getElementById(`row-${id}`);
-  row.innerHTML = `
-    <td><input type="number" id="edit-num-${id}" value="${p.number}" style="width:50px; background:#000; color:white; border:1px solid #333; text-align:center;"></td>
-    <td><input type="text" id="edit-name-${id}" value="${p.name}" style="width:100%; background:#000; color:white; border:1px solid #333;"></td>
-    <td>
-      <select id="edit-pos-${id}" style="background:#000; color:white; border:1px solid #333;">
-        <option ${p.pos==='投手'?'selected':''}>投手</option>
-        <option ${p.pos==='捕手'?'selected':''}>捕手</option>
-        <option ${p.pos==='内野手'?'selected':''}>内野手</option>
-        <option ${p.pos==='外野手'?'selected':''}>外野手</option>
-      </select>
-    </td>
-    <td style="display:flex; gap:5px; justify-content:center;">
-      <button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="updatePlayer(${id})">保存</button>
-      <button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="renderPlayerList()">取消</button>
-    </td>
-  `;
-}
-
-async function updatePlayer(id) {
-  const p = players.find(x => x.id === id);
-  p.number = document.getElementById(`edit-num-${id}`).value;
-  p.name = document.getElementById(`edit-name-${id}`).value;
-  p.pos = document.getElementById(`edit-pos-${id}`).value;
-  
-  await saveToGAS('players', players);
-  renderAll();
-  showToast('選手情報を更新しました');
-}
-
-function renderAddForm() {
-  const wrap = document.getElementById('player-stats-form');
-  const sorted = [...players].sort((a,b) => a.number - b.number);
-  wrap.innerHTML = '<div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px; font-size:10px; color:var(--muted); text-align:center;"><div>選手</div><div>打席</div><div>打数</div><div>安打</div><div>打点</div></div>' + 
-  sorted.map(p => `
-    <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px; align-items:center;">
-      <div style="font-size:13px;">${p.number} ${p.name}</div>
-      <input type="number" id="pa-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
-      <input type="number" id="ab-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
-      <input type="number" id="h-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
-      <input type="number" id="rbi-${p.id}" value="0" style="padding:5px; background:#000; border:1px solid #333; color:white; text-align:center;">
-    </div>
   `).join('');
 }
 
@@ -407,28 +345,29 @@ async function deletePlayer(id) {
 }
 
 async function saveGame() {
+  const opponent = document.getElementById('game-opponent').value;
+  if(!opponent) { alert('対戦相手を入力してください'); return; }
+
   const g = {
     id: Date.now(),
     season: document.getElementById('game-season').value,
     type: document.getElementById('game-type').value,
     date: document.getElementById('game-date').value,
-    opponent: document.getElementById('game-opponent').value,
+    opponent: opponent,
     us: parseInt(document.getElementById('game-score-us').value || 0),
     them: parseInt(document.getElementById('game-score-them').value || 0),
-    stats: players.map(p => ({
-      pid: p.id,
-      pa: parseInt(document.getElementById(`pa-${p.id}`).value || 0),
-      ab: parseInt(document.getElementById(`ab-${p.id}`).value || 0),
-      h: parseInt(document.getElementById(`h-${p.id}`).value || 0),
-      rbi: parseInt(document.getElementById(`rbi-${p.id}`).value || 0),
-      atBats: []
-    }))
+    stats: []
   };
   games.push(g);
   await saveToGAS('games', games);
   renderAll();
   switchTab('games');
   showToast('試合を保存しました');
+  
+  // 入力欄リセット
+  document.getElementById('game-opponent').value = '';
+  document.getElementById('game-score-us').value = '0';
+  document.getElementById('game-score-them').value = '0';
 }
 
 async function deleteGame(id) {
@@ -439,10 +378,22 @@ async function deleteGame(id) {
 }
 
 function switchTab(name) {
-  const names = ['stats','register','games','add'];
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  const tabs = ['stats', 'register', 'games', 'add'];
+  // タブボタンの切り替え
+  tabs.forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.toggle('active', t === name);
+  });
+  // 試合追加(add)ボタンは試合一覧(games)タブの一部として扱う
+  if (name === 'add') {
+    const gamesTab = document.getElementById('tab-games');
+    if (gamesTab) gamesTab.classList.add('active');
+  }
+
+  // パネルの切り替え
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`panel-${name}`).classList.add('active');
+  const targetPanel = document.getElementById(`panel-${name}`);
+  if (targetPanel) targetPanel.classList.add('active');
 }
 
 function showToast(msg) {
