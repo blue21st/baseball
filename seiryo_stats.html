@@ -255,9 +255,19 @@ async function loadFromGAS() {
 
 async function saveToGAS(type, data) {
   try {
-    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type, data }) });
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, data })
+    });
+    if (!res.ok) {
+      showToast('保存に失敗しました（サーバーエラー）');
+      return false;
+    }
+    return true;
   } catch(e) {
-    showToast('保存に失敗しました');
+    showToast('保存に失敗しました（通信エラー）');
+    return false;
   }
 }
 
