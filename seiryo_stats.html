@@ -54,24 +54,30 @@
     background: transparent; color: var(--muted); transition: all 0.2s;
   }
   .tab.active { background: var(--accent); color: #000; }
-  .tab:hover:not(.active) { color: var(--text); }
 
   /* Panel */
   .panel { display: none; }
   .panel.active { display: block; }
 
   /* Stats overview cards */
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 28px; }
   .stat-card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 12px; padding: 18px 16px;
   }
   .stat-card .label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-  .stat-card .value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); }
+  .stat-card .value { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); }
 
-  /* Table */
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
+  /* Table Container (Scrollable on mobile) */
+  .table-wrap { 
+    background: var(--surface); 
+    border: 1px solid var(--border); 
+    border-radius: 14px; 
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 500px; }
   thead { background: var(--surface2); }
   th {
     padding: 12px 14px; font-size: 11px; letter-spacing: 1px;
@@ -84,51 +90,41 @@
     border-top: 1px solid var(--border); white-space: nowrap;
   }
   td:first-child { text-align: left; font-weight: 500; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
   .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); margin-right: 10px; }
-  .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 11px; font-weight: 700; background: var(--surface2); color: var(--muted);
-  }
 
   /* Forms */
-  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 16px; }
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
   .form-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--accent); margin-bottom: 20px; letter-spacing: 2px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group label { font-size: 12px; color: var(--muted); letter-spacing: 0.5px; }
+  .form-group label { font-size: 12px; color: var(--muted); }
   .form-group input, .form-group select {
     background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 12px; color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif; font-size: 16px; outline: none;
+    border-radius: 8px; padding: 10px; color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif; font-size: 14px; outline: none;
+    width: 100%;
   }
-  .btn {
-    padding: 11px 24px; border-radius: 8px; border: none; cursor: pointer;
-    font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 14px;
-    transition: all 0.2s;
-  }
+
+  /* Number Stepper (for Uniform Number) */
+  .stepper { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
+  .stepper button { width: 40px; height: 40px; border: none; background: var(--surface2); color: white; cursor: pointer; font-size: 18px; }
+  .stepper input { width: 50px; border: none; background: transparent; color: white; text-align: center; font-size: 16px; }
+
+  .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 14px; transition: 0.2s; }
   .btn-primary { background: var(--accent); color: #000; }
   .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-  .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); font-size: 12px; padding: 6px 12px; }
-  .form-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+  .btn-danger { background: var(--red); color: white; }
+  .form-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
 
   /* Toast */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--green); color: #fff; padding: 12px 20px;
-    border-radius: 10px; font-size: 14px; font-weight: 500;
-    transform: translateY(80px); opacity: 0; transition: all 0.3s;
-    z-index: 999;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #fff; padding: 12px 20px; border-radius: 10px; transform: translateY(80px); transition: 0.3s; z-index: 999; }
+  .toast.show { transform: translateY(0); }
 
   @media (max-width: 600px) {
-    .main { padding: 16px 10px; }
     .tabs { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
-    .tab { padding: 9px 4px; font-size: 12px; text-align: center; }
+    .tab { padding: 10px 2px; font-size: 12px; }
     .form-grid { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .btn { padding: 8px 16px; font-size: 12px; }
+    .stat-card .value { font-size: 24px; }
   }
 </style>
 </head>
@@ -137,24 +133,21 @@
 <div id="lock-screen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 32px;width:90%;max-width:360px;text-align:center;">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);letter-spacing:3px;margin-bottom:8px;">⚾ BALLSTATS</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:28px;">SEIRYO 専用ページ</div>
-    <input type="password" id="pw-input" placeholder="パスワード"
-      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-size:16px;font-family:inherit;outline:none;text-align:center;margin-bottom:12px;"
-      onkeydown="if(event.key==='Enter')checkPassword()">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:28px;">SEIRYO ログイン</div>
+    <input type="password" id="pw-input" placeholder="パスワード" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;color:white;text-align:center;margin-bottom:12px;">
     <button onclick="checkPassword()" class="btn btn-primary" style="width:100%;">ログイン</button>
-    <div id="pw-error" style="display:none;color:var(--red);font-size:13px;margin-top:10px;">パスワードが違います</div>
   </div>
 </div>
 
 <div id="app-content" style="display:none;">
 <header>
-  <div class="logo">⚾ BALL<span>STATS</span> SEIRYO</div>
+  <div class="logo">⚾ BALL<span>STATS</span></div>
 </header>
 
 <div class="main">
   <div class="tabs">
-    <button class="tab active" id="tab-stats" onclick="switchTab('stats')">成績一覧</button>
-    <button class="tab" id="tab-register" onclick="switchTab('register')">選手一覧</button>
+    <button class="tab active" id="tab-stats" onclick="switchTab('stats')">累計成績</button>
+    <button class="tab" id="tab-register" onclick="switchTab('register')">選手管理</button>
     <button class="tab" id="tab-games" onclick="switchTab('games')">試合一覧</button>
   </div>
 
@@ -165,7 +158,7 @@
         <thead>
           <tr>
             <th style="text-align:left">選手</th>
-            <th>打席</th><th>打数</th><th>安打</th><th>打点</th><th>盗塁</th><th>打率</th>
+            <th>打席</th><th>得点</th><th>打点</th><th>盗企</th><th>盗塁</th>
           </tr>
         </thead>
         <tbody id="stats-tbody"></tbody>
@@ -182,38 +175,33 @@
 
   <div class="panel" id="panel-add-game">
     <div class="form-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <div class="form-title" style="margin-bottom:0;">新規試合登録</div>
-        <button class="btn btn-outline" style="padding: 6px 12px; font-size:12px;" onclick="switchTab('games')">キャンセル</button>
-      </div>
+      <div class="form-title">試合登録</div>
       <div class="form-grid">
-        <div class="form-group"><label>年度</label><input type="number" id="game-season" value="2026"></div>
-        <div class="form-group"><label>種別</label><select id="game-type"><option>公式戦</option><option>練習試合</option></select></div>
-        <div class="form-group"><label>試合日</label><input type="date" id="game-date"></div>
-        <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="相手チーム名"></div>
+        <div class="form-group"><label>日付</label><input type="date" id="game-date"></div>
+        <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="相手チーム"></div>
         <div class="form-group"><label>自軍得点</label><input type="number" id="game-score-us" value="0"></div>
         <div class="form-group"><label>敵軍得点</label><input type="number" id="game-score-them" value="0"></div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveGame()">試合を保存して次へ</button>
+        <button class="btn btn-outline" onclick="switchTab('games')">キャンセル</button>
+        <button class="btn btn-primary" onclick="saveGame()">保存して次へ</button>
       </div>
     </div>
   </div>
 
   <div class="panel" id="panel-edit-stats">
     <div class="form-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <div>
-          <div class="form-title" style="margin-bottom:2px;" id="edit-stats-title">選手成績登録</div>
-          <div style="font-size:12px; color:var(--muted);" id="edit-stats-subtitle"></div>
+      <div class="form-title" id="edit-stats-title">選手成績入力</div>
+      <div style="overflow-x: auto; margin-bottom: 20px;">
+        <div style="min-width: 450px;">
+          <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr; gap:8px; font-size:10px; color:var(--muted); text-align:center; padding-bottom:10px; border-bottom:1px solid var(--border);">
+            <div style="text-align:left">選手</div><div>打席</div><div>得点</div><div>打点</div><div>盗企</div><div>盗塁</div>
+          </div>
+          <div id="player-edit-stats-list" style="margin-top:10px;"></div>
         </div>
-        <button class="btn btn-outline" style="padding: 6px 12px; font-size:12px;" onclick="switchTab('games')">戻る</button>
       </div>
-      
-      <div id="player-edit-stats-list"></div>
-
       <div class="form-actions">
-        <button class="btn btn-primary" style="width:100%;" onclick="updateGameStats()">成績を保存する</button>
+        <button class="btn btn-primary" style="width:100%" onclick="updateGameStats()">成績を保存する</button>
       </div>
     </div>
   </div>
@@ -232,13 +220,17 @@
 
   <div class="panel" id="panel-add-player">
     <div class="form-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <div class="form-title" style="margin-bottom:0;">新しい選手を登録</div>
-        <button class="btn btn-outline" style="padding: 6px 12px; font-size:12px;" onclick="switchTab('register')">キャンセル</button>
-      </div>
+      <div class="form-title">選手登録</div>
       <div class="form-grid">
-        <div class="form-group"><label>背番号</label><input type="number" id="reg-number" placeholder="0"></div>
-        <div class="form-group"><label>氏名</label><input type="text" id="reg-name" placeholder="選手名"></div>
+        <div class="form-group">
+          <label>背番号 (0-99)</label>
+          <div class="stepper">
+            <button onclick="changeNum('reg-number', -1)">-</button>
+            <input type="number" id="reg-number" value="1" min="0" max="99">
+            <button onclick="changeNum('reg-number', 1)">+</button>
+          </div>
+        </div>
+        <div class="form-group"><label>氏名</label><input type="text" id="reg-name"></div>
         <div class="form-group">
           <label>ポジション</label>
           <select id="reg-pos">
@@ -247,6 +239,7 @@
         </div>
       </div>
       <div class="form-actions">
+        <button class="btn btn-outline" onclick="switchTab('register')">キャンセル</button>
         <button class="btn btn-primary" onclick="addPlayer()">登録する</button>
       </div>
     </div>
@@ -258,10 +251,8 @@
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbySJYE7XzjON6Vyn1dGcBPzw2kRXatzcPSrSzXrrTr0CDpSaq4uQy7Yaml1Y7Ggx2p9FA/exec';
 const CORRECT_PASSWORD = 'seiryo';
-
 let players = [];
 let games = [];
-let _isLoaded = false;
 let _currentEditingGameId = null;
 
 function checkPassword() {
@@ -270,125 +261,128 @@ function checkPassword() {
     document.getElementById('lock-screen').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
     loadFromGAS();
-  } else {
-    document.getElementById('pw-error').style.display = 'block';
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('game-date').value = today;
-  if (sessionStorage.getItem('bs_auth_seiryo') === '1') {
-    document.getElementById('lock-screen').style.display = 'none';
-    document.getElementById('app-content').style.display = 'block';
-    loadFromGAS();
-  }
-});
-
 async function loadFromGAS() {
-  showToast('データを読み込み中...');
+  showToast('読み込み中...');
   try {
     const res = await fetch(GAS_URL);
     const data = await res.json();
     players = data.players || [];
     games = data.games || [];
-    _isLoaded = true;
     renderAll();
-    showToast('読み込み完了！');
-  } catch(e) {
-    showToast('読み込みエラー');
-  }
+    showToast('読み込み完了');
+  } catch(e) { showToast('通信エラー'); }
 }
 
 async function saveToGAS(type, data) {
-  try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ type: type, data: data })
-    });
-  } catch(e) {
-    showToast('保存に失敗しました');
-  }
+  await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type, data }) });
+}
+
+function changeNum(id, delta) {
+  const el = document.getElementById(id);
+  el.value = Math.max(0, Math.min(99, parseInt(el.value) + delta));
 }
 
 function renderAll() {
-  renderStats();
-  renderGames();
-  renderPlayerList();
-}
-
-function renderStats() {
-  const rows = players.map(p => {
-    let pa=0, ab=0, h=0, rbi=0, sb=0;
+  const sortedPlayers = [...players].sort((a,b) => a.number - b.number);
+  
+  // 成績一覧
+  document.getElementById('stats-tbody').innerHTML = sortedPlayers.map(p => {
+    let pa=0, score=0, rbi=0, sba=0, sb=0;
     games.forEach(g => {
       const s = (g.stats || []).find(st => st.pid === p.id);
       if(s) {
-        pa += Number(s.pa || 0);
-        ab += Number(s.ab || 0);
-        h += Number(s.h || 0);
-        rbi += Number(s.rbi || 0);
-        sb += Number(s.sb || 0);
+        pa += Number(s.pa || 0); score += Number(s.score || 0);
+        rbi += Number(s.rbi || 0); sba += Number(s.sba || 0); sb += Number(s.sb || 0);
       }
     });
-    const avg = ab > 0 ? (h/ab).toFixed(3).replace(/^0/, '') : '.000';
-    return `<tr>
-      <td style="text-align:left;"><span class="player-num">${p.number}</span>${p.name}</td>
-      <td>${pa}</td><td>${ab}</td><td>${h}</td><td>${rbi}</td><td>${sb}</td><td class="batting-avg">${avg}</td>
-    </tr>`;
+    return `<tr><td><span class="player-num">${p.number}</span>${p.name}</td><td>${pa}</td><td>${score}</td><td>${rbi}</td><td>${sba}</td><td>${sb}</td></tr>`;
   }).join('');
 
   document.getElementById('overview-cards').innerHTML = `
     <div class="stat-card"><div class="label">試合数</div><div class="value">${games.length}</div></div>
-    <div class="stat-card"><div class="label">登録選手</div><div class="value">${players.length}</div></div>
+    <div class="stat-card"><div class="label">選手数</div><div class="value">${players.length}</div></div>
   `;
-  document.getElementById('stats-tbody').innerHTML = rows || '<tr><td colspan="7">選手を登録してください</td></tr>';
+
+  // 試合一覧
+  document.getElementById('game-list-wrap').innerHTML = games.map(g => `
+    <div class="form-card" style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
+      <div><div style="font-size:12px; color:var(--muted);">${g.date}</div><div style="font-weight:bold;">vs ${g.opponent}</div></div>
+      <div style="font-family:'Bebas Neue'; font-size:24px; color:var(--accent);">${g.us} - ${g.them}</div>
+      <button class="btn btn-outline" style="padding:6px 12px; font-size:12px;" onclick="openStatsEditor(${g.id})">成績入力</button>
+    </div>
+  `).reverse().join('');
+
+  // 選手一覧
+  document.getElementById('player-list-tbody').innerHTML = sortedPlayers.map(p => `
+    <tr id="prow-${p.id}">
+      <td>${p.number}</td><td>${p.name}</td><td><span class="badge">${p.pos}</span></td>
+      <td><button class="btn btn-outline" style="padding:4px 10px; font-size:12px;" onclick="editPlayerMode(${p.id})">編集</button></td>
+    </tr>
+  `).join('');
 }
 
-function renderGames() {
-  const wrap = document.getElementById('game-list-wrap');
-  wrap.innerHTML = games.map(g => `
-    <div class="form-card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div>
-          <div style="font-size:12px; color:var(--muted);">${g.date} [${g.type}]</div>
-          <div style="font-weight:bold; font-size:16px;">vs ${g.opponent}</div>
-        </div>
-        <div style="font-family:'Bebas Neue'; font-size:28px; color:var(--accent);">${g.us} - ${g.them}</div>
+function editPlayerMode(id) {
+  const p = players.find(x => x.id === id);
+  const prow = document.getElementById(`prow-${id}`);
+  prow.innerHTML = `
+    <td colspan="3">
+      <div class="form-grid" style="grid-template-columns: 1fr 2fr 1fr;">
+        <input type="number" id="epn-${id}" value="${p.number}" style="padding:5px; text-align:center;">
+        <input type="text" id="epname-${id}" value="${p.name}" style="padding:5px;">
+        <select id="eppos-${id}" style="padding:5px;">
+          <option ${p.pos==='投手'?'selected':''}>投手</option>
+          <option ${p.pos==='捕手'?'selected':''}>捕手</option>
+          <option ${p.pos==='内野手'?'selected':''}>内野手</option>
+          <option ${p.pos==='外野手'?'selected':''}>外野手</option>
+        </select>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-primary" style="flex:1; padding: 8px;" onclick="openStatsEditor(${g.id})">成績入力</button>
-        <button class="btn btn-outline" style="padding: 8px;" onclick="deleteGame(${g.id})">削除</button>
+    </td>
+    <td>
+      <div style="display:flex; gap:4px; flex-direction:column;">
+        <button class="btn btn-primary" style="padding:4px; font-size:10px;" onclick="updatePlayer(${id})">保存</button>
+        <button class="btn btn-danger" style="padding:4px; font-size:10px;" onclick="deletePlayer(${id})">削除</button>
       </div>
-    </div>
-  `).reverse().join('') || '<p style="text-align:center; padding:20px; color:var(--muted);">試合データがありません</p>';
+    </td>
+  `;
+}
+
+async function updatePlayer(id) {
+  const p = players.find(x => x.id === id);
+  p.number = document.getElementById(`epn-${id}`).value;
+  p.name = document.getElementById(`epname-${id}`).value;
+  p.pos = document.getElementById(`eppos-${id}`).value;
+  await saveToGAS('players', players);
+  renderAll();
+  showToast('更新完了');
+}
+
+async function deletePlayer(id) {
+  if(!confirm('削除しますか？')) return;
+  players = players.filter(p => p.id !== id);
+  await saveToGAS('players', players);
+  renderAll();
 }
 
 function openStatsEditor(gameId) {
   _currentEditingGameId = gameId;
   const game = games.find(g => g.id === gameId);
+  document.getElementById('edit-stats-title').textContent = `${game.date} vs ${game.opponent}`;
+  
   const sortedPlayers = [...players].sort((a,b) => a.number - b.number);
-  
-  document.getElementById('edit-stats-subtitle').textContent = `${game.date} vs ${game.opponent}`;
-  
-  const listWrap = document.getElementById('player-edit-stats-list');
-  listWrap.innerHTML = `
-    <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap:6px; margin-bottom:8px; font-size:10px; color:var(--muted); text-align:center;">
-      <div style="text-align:left">選手</div><div>打席</div><div>打数</div><div>安打</div><div>打点</div><div>盗塁</div>
-    </div>
-  ` + sortedPlayers.map(p => {
-    const s = (game.stats || []).find(st => st.pid === p.id) || {pa:0, ab:0, h:0, rbi:0, sb:0};
-    return `
-      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; gap:6px; margin-bottom:8px; align-items:center;">
-        <div style="font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.number} ${p.name}</div>
-        <input type="number" id="edit-pa-${p.id}" value="${s.pa}" style="padding:6px 2px; background:#000; border:1px solid #333; color:white; text-align:center; font-size:14px;">
-        <input type="number" id="edit-ab-${p.id}" value="${s.ab}" style="padding:6px 2px; background:#000; border:1px solid #333; color:white; text-align:center; font-size:14px;">
-        <input type="number" id="edit-h-${p.id}" value="${s.h}" style="padding:6px 2px; background:#000; border:1px solid #333; color:white; text-align:center; font-size:14px;">
-        <input type="number" id="edit-rbi-${p.id}" value="${s.rbi}" style="padding:6px 2px; background:#000; border:1px solid #333; color:white; text-align:center; font-size:14px;">
-        <input type="number" id="edit-sb-${p.id}" value="${s.sb}" style="padding:6px 2px; background:#000; border:1px solid #333; color:white; text-align:center; font-size:14px;">
-      </div>
-    `;
+  document.getElementById('player-edit-stats-list').innerHTML = sortedPlayers.map(p => {
+    const s = (game.stats || []).find(st => st.pid === p.id) || {pa:0, score:0, rbi:0, sba:0, sb:0};
+    return `<div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px; align-items:center;">
+      <div style="font-size:12px; overflow:hidden;">${p.number} ${p.name}</div>
+      <input type="number" id="pa-${p.id}" value="${s.pa}" style="padding:6px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="sc-${p.id}" value="${s.score}" style="padding:6px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="rb-${p.id}" value="${s.rbi}" style="padding:6px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="sa-${p.id}" value="${s.sba}" style="padding:6px; background:#000; border:1px solid #333; color:white; text-align:center;">
+      <input type="number" id="sb-${p.id}" value="${s.sb}" style="padding:6px; background:#000; border:1px solid #333; color:white; text-align:center;">
+    </div>`;
   }).join('');
-  
   switchTab('edit-stats');
 }
 
@@ -396,93 +390,42 @@ async function updateGameStats() {
   const game = games.find(g => g.id === _currentEditingGameId);
   game.stats = players.map(p => ({
     pid: p.id,
-    pa: parseInt(document.getElementById(`edit-pa-${p.id}`).value || 0),
-    ab: parseInt(document.getElementById(`edit-ab-${p.id}`).value || 0),
-    h: parseInt(document.getElementById(`edit-h-${p.id}`).value || 0),
-    rbi: parseInt(document.getElementById(`edit-rbi-${p.id}`).value || 0),
-    sb: parseInt(document.getElementById(`edit-sb-${p.id}`).value || 0)
+    pa: document.getElementById(`pa-${p.id}`).value,
+    score: document.getElementById(`sc-${p.id}`).value,
+    rbi: document.getElementById(`rb-${p.id}`).value,
+    sba: document.getElementById(`sa-${p.id}`).value,
+    sb: document.getElementById(`sb-${p.id}`).value
   }));
-
   await saveToGAS('games', games);
   renderAll();
-  showToast('成績を保存しました');
   switchTab('games');
-}
-
-function renderPlayerList() {
-  const sorted = [...players].sort((a,b) => a.number - b.number);
-  document.getElementById('player-list-tbody').innerHTML = sorted.map(p => `
-    <tr id="row-${p.id}">
-      <td>${p.number}</td>
-      <td style="text-align:left;">${p.name}</td>
-      <td><span class="badge">${p.pos}</span></td>
-      <td>
-        <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deletePlayer(${p.id})">削除</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-async function addPlayer() {
-  const num = document.getElementById('reg-number').value;
-  const name = document.getElementById('reg-name').value;
-  const pos = document.getElementById('reg-pos').value;
-  if(!name) { alert('名前を入力してください'); return; }
-  players.push({ id: Date.now(), number: num, name: name, pos: pos });
-  await saveToGAS('players', players);
-  renderAll();
-  switchTab('register');
-  showToast('選手を追加しました');
-  document.getElementById('reg-number').value = '';
-  document.getElementById('reg-name').value = '';
-}
-
-async function deletePlayer(id) {
-  if(!confirm('選手を削除しますか？')) return;
-  players = players.filter(p => p.id !== id);
-  await saveToGAS('players', players);
-  renderAll();
+  showToast('成績保存完了');
 }
 
 async function saveGame() {
-  const opponent = document.getElementById('game-opponent').value;
-  if(!opponent) { alert('対戦相手を入力してください'); return; }
-  const g = {
-    id: Date.now(),
-    season: document.getElementById('game-season').value,
-    type: document.getElementById('game-type').value,
-    date: document.getElementById('game-date').value,
-    opponent: opponent,
-    us: parseInt(document.getElementById('game-score-us').value || 0),
-    them: parseInt(document.getElementById('game-score-them').value || 0),
-    stats: []
-  };
+  const opp = document.getElementById('game-opponent').value;
+  if(!opp) return;
+  const g = { id: Date.now(), date: document.getElementById('game-date').value, opponent: opp, us: document.getElementById('game-score-us').value, them: document.getElementById('game-score-them').value, stats: [] };
   games.push(g);
   await saveToGAS('games', games);
   renderAll();
-  showToast('試合を保存しました。成績を入力してください');
   openStatsEditor(g.id);
 }
 
-async function deleteGame(id) {
-  if(!confirm('試合データを削除しますか？')) return;
-  games = games.filter(g => g.id !== id);
-  await saveToGAS('games', games);
+async function addPlayer() {
+  const n = document.getElementById('reg-name').value;
+  if(!n) return;
+  players.push({ id: Date.now(), number: document.getElementById('reg-number').value, name: n, pos: document.getElementById('reg-pos').value });
+  await saveToGAS('players', players);
   renderAll();
+  switchTab('register');
 }
 
 function switchTab(name) {
-  const tabs = ['stats', 'register', 'games', 'add-game', 'add-player', 'edit-stats'];
-  const baseTabs = ['stats', 'register', 'games'];
-  
-  baseTabs.forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.toggle('active', t === name || (t==='games' && (name==='add-game' || name==='edit-stats')) || (t==='register' && name==='add-player'));
-  });
-
+  const btns = ['stats', 'register', 'games'];
+  btns.forEach(b => document.getElementById(`tab-${b}`).classList.toggle('active', b === name || (b==='games' && (name==='add-game'||name==='edit-stats'))));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const targetPanel = document.getElementById(`panel-${name}`);
-  if (targetPanel) targetPanel.classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
 }
 
 function showToast(msg) {
@@ -491,6 +434,15 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('game-date').value = new Date().toISOString().split('T')[0];
+  if (sessionStorage.getItem('bs_auth_seiryo') === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    loadFromGAS();
+  }
+});
 </script>
 </body>
 </html>
