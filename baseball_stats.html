@@ -139,7 +139,7 @@
 
 <div id="app-content" style="display:none;">
 <header>
-  <div class="logo">⚾ BALL<span>STATS</span></div>
+  <div class="logo" onclick="loadFromSupabase();switchTab('stats');" style="cursor:pointer;">⚾ BALL<span>STATS</span></div>
 </header>
 
 <div class="main">
@@ -152,13 +152,33 @@
 
   <!-- 成績一覧 -->
   <div class="panel active" id="panel-stats">
+    <!-- フィルター -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <select id="filter-season" onchange="renderStats()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <option value="">全年度</option>
+      </select>
+      <select id="filter-type" onchange="renderStats()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <option value="">全種別</option>
+        <option value="公式戦">公式戦</option>
+        <option value="練習試合">練習試合</option>
+      </select>
+      <select id="filter-tournament" onchange="renderStats()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <option value="">全大会</option>
+      </select>
+    </div>
     <div class="stats-grid" id="overview-cards"></div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th style="text-align:left">選手</th>
-            <th>打率</th><th>打数</th><th>安打</th><th>打点</th><th>本塁打</th><th>盗塁</th><th></th>
+            <th style="text-align:left;cursor:pointer;" onclick="sortStats('number')">選手 ↕</th>
+            <th style="cursor:pointer;" onclick="sortStats('avg')">打率 ↕</th>
+            <th style="cursor:pointer;" onclick="sortStats('ab')">打数 ↕</th>
+            <th style="cursor:pointer;" onclick="sortStats('h')">安打 ↕</th>
+            <th style="cursor:pointer;" onclick="sortStats('rbi')">打点 ↕</th>
+            <th style="cursor:pointer;" onclick="sortStats('hr')">本塁打 ↕</th>
+            <th style="cursor:pointer;" onclick="sortStats('sb')">盗塁 ↕</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="stats-tbody"></tbody>
@@ -178,6 +198,7 @@
       <div class="form-grid">
         <div class="form-group"><label>年度</label><input type="number" id="game-season" value="2026"></div>
         <div class="form-group"><label>種別</label><select id="game-type"><option>公式戦</option><option>練習試合</option></select></div>
+        <div class="form-group" style="grid-column:1/-1;"><label>大会名（任意）</label><input type="text" id="game-tournament" placeholder="例：春季大会"></div>
         <div class="form-group"><label>試合日</label><input type="date" id="game-date"></div>
         <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="○○チーム"></div>
         <div class="form-group"><label>自軍得点</label><select id="game-score-us"></select></div>
@@ -270,6 +291,8 @@ let players = [];
 let games = [];
 let openGameId = null;
 let _isLoaded = false;
+let _sortKey = 'number';
+let _sortDir = 1;
 
 function checkPassword() {
   const input = document.getElementById('pw-input').value.trim();
@@ -393,10 +416,89 @@ function toggleAdvStats(pid) {
   document.getElementById(`adv-${pid}`).classList.toggle('open');
 }
 
+function sortStats(key) {
+  if (_sortKey === key) _sortDir *= -1;
+  else { _sortKey = key; _sortDir = key === 'number' ? 1 : -1; }
+  renderStats();
+}
+
 function renderStats() {
-  const rows = players.map(p => {
-    const s = calcStats(p);
-    return `
+  // フィルターセレクト更新
+  const seasons = [...new Set(games.map(g => g.season || String(new Date(g.date).getFullYear())))].sort((a,b) => b-a);
+  const tournaments = [...new Set(games.map(g => g.tournament).filter(Boolean))].sort();
+  const fSeason = document.getElementById('filter-season');
+  const fType   = document.getElementById('filter-type');
+  const fTour   = document.getElementById('filter-tournament');
+  if (fSeason) { const cv=fSeason.value; fSeason.innerHTML='<option value="">全年度</option>'+seasons.map(s=>`<option value="${s}"${s===cv?' selected':''}>${s}年</option>`).join(''); }
+  if (fTour)   { const cv=fTour.value;   fTour.innerHTML='<option value="">全大会</option>'+tournaments.map(t=>`<option value="${t}"${t===cv?' selected':''}>${t}</option>`).join(''); }
+
+  const selSeason = fSeason?.value || '';
+  const selType   = fType?.value   || '';
+  const selTour   = fTour?.value   || '';
+
+  let filteredGames = games;
+  if (selSeason) filteredGames = filteredGames.filter(g => (g.season||String(new Date(g.date).getFullYear()))===selSeason);
+  if (selType)   filteredGames = filteredGames.filter(g => (g.type||'公式戦')===selType);
+  if (selTour)   filteredGames = filteredGames.filter(g => (g.tournament||'')===selTour);
+
+  // チーム成績
+  let teamAB=0,teamH=0,teamRBI=0,teamSB=0,teamUs=0,teamThem=0;
+  filteredGames.forEach(g => {
+    teamUs+=g.us||0; teamThem+=g.them||0;
+    (g.stats||[]).forEach(s => {
+      teamRBI+=s.rbi||0; teamSB+=s.sb||0;
+      (s.details||[]).forEach(d => {
+        const r=d.res||'';
+        if (!['四球','死球','見逃し三振','空振り三振','振り逃げ','敬遠','打撃妨害','走塁妨害','犠打','犠飛'].includes(r)) teamAB++;
+        if (['単打','二塁打','三塁打','本塁打'].includes(r)) teamH++;
+      });
+    });
+  });
+  const teamAvg = teamAB>0 ? ('.'+Math.round(teamH/teamAB*1000).toString().padStart(3,'0')) : '.000';
+  const wins=filteredGames.filter(g=>g.us>g.them).length, loses=filteredGames.filter(g=>g.us<g.them).length;
+  document.getElementById('overview-cards').innerHTML = `
+    <div class="stat-card"><div class="label">試合数</div><div class="value">${filteredGames.length}</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">${wins}勝 ${loses}敗</div></div>
+    <div class="stat-card"><div class="label">チーム打率</div><div class="value">${teamAvg}</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">${teamH}安打/${teamAB}打数</div></div>
+    <div class="stat-card"><div class="label">総打点</div><div class="value">${teamRBI}</div></div>
+    <div class="stat-card"><div class="label">総盗塁</div><div class="value">${teamSB}</div></div>
+    <div class="stat-card"><div class="label">総得点</div><div class="value" style="color:var(--green);">${teamUs}</div></div>
+    <div class="stat-card"><div class="label">総失点</div><div class="value" style="color:var(--red);">${teamThem}</div></div>
+  `;
+
+  // 選手成績（フィルター済み試合で計算）
+  function calcFiltered(p) {
+    let pa=0,rbi=0,sb=0,sba=0,h1=0,h2=0,h3=0,hr=0,bb=0,ibb=0,hbp=0,sac=0,sf=0,k=0,nonAB=0;
+    filteredGames.forEach(g => {
+      const s=g.stats&&g.stats.find(st=>st.pid===p.id); if(!s) return;
+      pa+=s.pa||0; rbi+=s.rbi||0; sb+=s.sb||0; sba+=s.sba||0;
+      (s.details||[]).forEach(d => {
+        switch(d.res) {
+          case '単打':h1++;break; case '二塁打':h2++;break; case '三塁打':h3++;break; case '本塁打':hr++;break;
+          case '四球':bb++;break; case '敬遠':ibb++;break; case '死球':hbp++;break;
+          case '犠打':sac++;break; case '犠飛':sf++;break;
+          case '三振':case '見逃し三振':case '空振り三振':case '振り逃げ':k++;break;
+          case '打撃妨害':case '走塁妨害':nonAB++;break;
+        }
+      });
+    });
+    const h=h1+h2+h3+hr, ab=pa-bb-ibb-hbp-sac-sf-nonAB, tb=h1+2*h2+3*h3+4*hr;
+    const f=(v,d=3)=>v===null?'---':v.toFixed(d).replace(/^0(\.)/, '$1');
+    const avg=ab>0?h/ab:null, obp=(ab+bb+hbp+sf)>0?(h+bb+hbp)/(ab+bb+hbp+sf):null;
+    const slg=ab>0?tb/ab:null, ops=(obp!==null&&slg!==null)?obp+slg:null;
+    const iso=(slg!==null&&avg!==null)?slg-avg:null;
+    const wDen=pa-ibb-sac, woba=wDen>0?(0.69*bb+0.72*hbp+0.88*h1+1.26*h2+1.60*h3+2.07*hr)/wDen:null;
+    const bbk=k>0?bb/k:null, sbpct=sba>0?sb/sba:null;
+    return {pa,ab,h,hr,rbi,sb,avg:f(avg),obp:f(obp),slg:f(slg),ops:ops!==null?ops.toFixed(3):'---',iso:f(iso),woba:f(woba),bbk:bbk!==null?bbk.toFixed(2):'---',sbpct:sbpct!==null?(sbpct*100).toFixed(1)+'%':'---'};
+  }
+
+  let rows = players.map(p => ({ p, s: calcFiltered(p) }));
+  rows.sort((a, b) => {
+    const va = _sortKey==='number' ? Number(a.p.number) : (parseFloat(a.s[_sortKey])||0);
+    const vb = _sortKey==='number' ? Number(b.p.number) : (parseFloat(b.s[_sortKey])||0);
+    return (va-vb)*_sortDir;
+  });
+
+  const tbody = rows.map(({p,s}) => `
     <tr>
       <td style="text-align:left;"><span class="player-num">${p.number}</span>${p.name}</td>
       <td style="font-family:'Bebas Neue';font-size:18px;color:var(--accent)">${s.avg}</td>
@@ -415,13 +517,8 @@ function renderStats() {
           <span style="color:var(--muted)">SB% <b style="color:var(--text)">${s.sbpct}</b></span>
         </div>
       </td>
-    </tr>`;
-  }).join('');
-  document.getElementById('overview-cards').innerHTML = `
-    <div class="stat-card"><div class="label">試合数</div><div class="value">${games.length}</div></div>
-    <div class="stat-card"><div class="label">登録選手</div><div class="value">${players.length}</div></div>
-  `;
-  document.getElementById('stats-tbody').innerHTML = rows || '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">データがありません</td></tr>';
+    </tr>`).join('');
+  document.getElementById('stats-tbody').innerHTML = tbody || '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">データがありません</td></tr>';
 }
 
 function renderGames() {
@@ -438,7 +535,7 @@ function renderGames() {
     <div class="game-card" id="gcard-${g.id}">
       <div class="game-card-header">
         <div class="game-info">
-          <div class="date">${g.date} <span class="type-badge">${g.type||'公式戦'}</span></div>
+          <div class="date">${g.date} <span class="type-badge">${g.type||'公式戦'}</span>${g.tournament?` <span class="type-badge" style="color:var(--accent);">${g.tournament}</span>`:''}</div>
           <div class="opponent">vs ${g.opponent}</div>
           ${getCompletionBadge(g)}
         </div>
@@ -456,6 +553,7 @@ function renderGames() {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
           <div class="form-group"><label>試合日</label><input type="date" id="gedit-date-${g.id}" value="${g.date}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group"><label>種別</label><select id="gedit-type-${g.id}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"><option${(g.type||'公式戦')==='公式戦'?' selected':''}>公式戦</option><option${(g.type||'')==='練習試合'?' selected':''}>練習試合</option></select></div>
+          <div class="form-group" style="grid-column:1/-1;"><label>大会名（任意）</label><input type="text" id="gedit-tournament-${g.id}" value="${g.tournament||''}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group" style="grid-column:1/-1;"><label>対戦相手</label><input type="text" id="gedit-opponent-${g.id}" value="${g.opponent}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group"><label>自軍得点</label><input type="number" id="gedit-us-${g.id}" value="${g.us||0}" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group"><label>敵軍得点</label><input type="number" id="gedit-them-${g.id}" value="${g.them||0}" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
@@ -484,11 +582,12 @@ async function saveGameEdit(gid) {
   if (!g) return;
   const opponent = document.getElementById(`gedit-opponent-${gid}`).value.trim();
   if (!opponent) { alert('対戦相手を入力してください'); return; }
-  g.date     = document.getElementById(`gedit-date-${gid}`).value;
-  g.type     = document.getElementById(`gedit-type-${gid}`).value;
-  g.opponent = opponent;
-  g.us       = parseInt(document.getElementById(`gedit-us-${gid}`).value) || 0;
-  g.them     = parseInt(document.getElementById(`gedit-them-${gid}`).value) || 0;
+  g.date       = document.getElementById(`gedit-date-${gid}`).value;
+  g.type       = document.getElementById(`gedit-type-${gid}`).value;
+  g.tournament = document.getElementById(`gedit-tournament-${gid}`)?.value.trim() || '';
+  g.opponent   = opponent;
+  g.us         = parseInt(document.getElementById(`gedit-us-${gid}`).value) || 0;
+  g.them       = parseInt(document.getElementById(`gedit-them-${gid}`).value) || 0;
   await saveToSupabase();
   renderGames();
   renderStats();
@@ -566,16 +665,37 @@ function renumDetail(gid, pid) {
 }
 
 function syncDetailRows(gid, pid) {
-  const pa   = parseInt(document.getElementById(`ps-pa-${gid}-${pid}`)?.value || 0);
+  const paVal = document.getElementById(`ps-pa-${gid}-${pid}`)?.value;
+  const pa = parseInt(paVal);
+  if (isNaN(pa) || pa < 0) return; // 「-」の場合はスキップ
   const wrap = document.getElementById(`dwrap-${gid}-${pid}`);
   if (!wrap) return;
-  const cur  = wrap.children.length;
-  if (pa > cur) {
-    for (let i = cur; i < pa; i++) addDetailRowSilent(gid, pid);
-  } else if (pa < cur) {
-    while (wrap.children.length > pa) wrap.lastChild.remove();
-    renumDetail(gid, pid);
+  const cur = wrap.children.length;
+  if (pa > cur) { for (let i=cur;i<pa;i++) addDetailRowSilent(gid, pid); }
+  else if (pa < cur) { while (wrap.children.length>pa) wrap.lastChild.remove(); renumDetail(gid, pid); }
+}
+
+async function savePlayerStats(gid, pid) {
+  const g = games.find(x => x.id == gid);
+  if (!g) return;
+  if (!g.stats) g.stats = [];
+  const paVal = document.getElementById(`ps-pa-${gid}-${pid}`)?.value;
+  const pa = paVal === '-1' ? -1 : parseInt(paVal) || 0;
+  const rbi     = parseInt(document.getElementById(`ps-rbi-${gid}-${pid}`)?.value || 0);
+  const run     = parseInt(document.getElementById(`ps-run-${gid}-${pid}`)?.value || 0);
+  const sb      = parseInt(document.getElementById(`ps-sb-${gid}-${pid}`)?.value  || 0);
+  const sba     = parseInt(document.getElementById(`ps-sba-${gid}-${pid}`)?.value || 0);
+  const details = getDetailsFromDOM(gid, pid);
+  const idx = g.stats.findIndex(s => s.pid == pid);
+  if (idx >= 0) {
+    g.stats[idx] = { ...g.stats[idx], pa, rbi, run, sb, sba, details };
+  } else {
+    g.stats.push({ pid: Number(pid), pa, rbi, run, sb, sba, details });
   }
+  await saveToSupabase();
+  renderGames();
+  renderStats();
+  showToast('保存しました');
 }
 
 function toggleDetail(gid, pid) {
@@ -602,27 +722,45 @@ function getCompletionBadge(g) {
 
 function buildStatsPanel(g) {
   if (!players.length) return '<p style="color:var(--muted);font-size:13px;">先に選手を登録してください</p>';
-  const sorted = [...players].sort((a,b) => a.number - b.number);
+  const sorted = [...players].sort((a,b) => Number(a.number) - Number(b.number));
+
+  // 入力完了チェック：全選手のpaが入力済み（-以外）
+  const allEntered = g.stats && sorted.every(p => {
+    const s = g.stats.find(st => st.pid === p.id);
+    return s && s.pa !== null && s.pa !== undefined && s.pa !== -1;
+  });
+
   const rows = sorted.map(p => {
     const s = g.stats && g.stats.find(st => st.pid === p.id);
-    const pa  = s ? s.pa  : 0;
-    const rbi = s ? s.rbi : 0;
-    const run = s ? s.run : 0;
-    const sb  = s ? s.sb  : 0;
-    const sba = s ? s.sba : 0;
+    const pa  = (s && s.pa  !== undefined && s.pa  !== -1) ? s.pa  : null;
+    const rbi = s ? (s.rbi || 0) : 0;
+    const run = s ? (s.run || 0) : 0;
+    const sb  = s ? (s.sb  || 0) : 0;
+    const sba = s ? (s.sba || 0) : 0;
     const details = s ? (s.details || []) : [];
     const detailRows = details.map((d, i) =>
       `<div class="detail-row">${makeDetailRowHTML(g.id, p.id, i+1, d.dir, d.res)}</div>`
     ).join('');
+
+    // 打席数：未入力は「-」表示、入力済みは数値
+    const paSelect = `<select class="ps-input" id="ps-pa-${g.id}-${p.id}" onchange="syncDetailRows('${g.id}','${p.id}')">
+      <option value="-1"${pa===null?' selected':''}>-</option>
+      ${[...Array(21).keys()].map(i=>`<option value="${i}"${pa===i?' selected':''}>${i}</option>`).join('')}
+    </select>`;
+
     return `
       <div class="ps-player-card">
         <div class="ps-card-top">
           <div class="ps-name"><span class="ps-num">${p.number}</span>${p.name}</div>
-          <button class="btn btn-outline" style="padding:5px 10px;font-size:11px;"
-            onclick="toggleDetail('${g.id}','${p.id}')">⚾ 打席詳細</button>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:11px;"
+              onclick="toggleDetail('${g.id}','${p.id}')">⚾ 打席詳細</button>
+            <button class="btn btn-primary" style="padding:5px 10px;font-size:11px;"
+              onclick="savePlayerStats('${g.id}','${p.id}')">保存</button>
+          </div>
         </div>
         <div class="ps-card-stats">
-          <div class="ps-stat"><label>打席</label><select class="ps-input" id="ps-pa-${g.id}-${p.id}" onchange="syncDetailRows('${g.id}','${p.id}')">${numOpts(pa)}</select></div>
+          <div class="ps-stat"><label>打席</label>${paSelect}</div>
           <div class="ps-stat"><label>打点</label><select class="ps-input" id="ps-rbi-${g.id}-${p.id}">${numOpts(rbi)}</select></div>
           <div class="ps-stat"><label>得点</label><select class="ps-input" id="ps-run-${g.id}-${p.id}">${numOpts(run)}</select></div>
           <div class="ps-stat"><label>盗塁</label><select class="ps-input" id="ps-sb-${g.id}-${p.id}">${numOpts(sb)}</select></div>
@@ -634,17 +772,17 @@ function buildStatsPanel(g) {
         </div>
       </div>`;
   }).join('');
+
   return `
-    <div class="stats-panel-title">選手成績</div>
-    <div class="player-stats-grid">
-      ${rows}
+    <div class="stats-panel-title">選手成績
+      ${allEntered ? '<span style="color:var(--green);font-size:11px;margin-left:8px;">✓ 入力完了</span>' : '<span style="color:var(--muted);font-size:11px;margin-left:8px;">未入力あり</span>'}
     </div>
-    <div style="font-size:12px;color:var(--muted);padding:10px 4px 0;margin-top:8px;border-top:1px solid var(--border);">
-      ⚾ 「打席詳細」ボタンから打席詳細を入力すると、打率・OPS・wOBA などを自動計算できます
+    <div style="font-size:12px;color:var(--muted);padding:6px 4px 10px;">
+      打席数が「-」の選手は未入力扱いです。全選手を入力すると「入力完了」になります。
     </div>
+    <div class="player-stats-grid">${rows}</div>
     <div class="stats-save-row">
       <button class="btn btn-outline btn-sm" onclick="toggleStatsPanel(${g.id})">閉じる</button>
-      <button class="btn btn-primary btn-sm" onclick="saveStats(${g.id})">保存する</button>
     </div>`;
 }
 
@@ -699,6 +837,7 @@ async function saveGame() {
     id: Date.now(),
     season: document.getElementById('game-season').value,
     type: document.getElementById('game-type').value,
+    tournament: document.getElementById('game-tournament').value.trim(),
     date: document.getElementById('game-date').value,
     opponent,
     us: parseInt(document.getElementById('game-score-us').value || 0),
