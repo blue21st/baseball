@@ -197,7 +197,7 @@
     <div class="form-card" style="margin-bottom:20px;">
       <div class="form-title">選手を追加</div>
       <div class="player-add-row">
-        <select id="reg-number" style="width:80px;"></select>
+        <input type="number" id="reg-number" placeholder="背番号" min="0" max="99" style="width:80px;">
         <input type="text" id="reg-name" placeholder="氏名" style="flex:1;">
         <select id="reg-pos">
           <option>投手</option><option>捕手</option><option>内野手</option><option>外野手</option>
@@ -285,7 +285,7 @@ function checkPassword() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  ['game-score-us','game-score-them','reg-number'].forEach(id => {
+  ['game-score-us','game-score-them'].forEach(id => {
     document.getElementById(id).innerHTML = numOpts(0);
   });
   const today = new Date().toISOString().split('T')[0];
@@ -331,7 +331,12 @@ async function saveToSupabase() {
 function renderAll() {
   renderStats();
   renderGames();
-  renderPlayerList();
+  // 選手一覧は入力中でなければ更新する
+  const nameInput = document.getElementById('reg-name');
+  const focused = document.activeElement;
+  if (!nameInput || focused !== nameInput) {
+    renderPlayerList();
+  }
 }
 
 function calcStats(p) {
@@ -439,10 +444,25 @@ function renderGames() {
         </div>
         <div class="game-score ${scoreClass}">${g.us} - ${g.them}</div>
         <div class="game-actions">
+          <button class="btn btn-outline btn-sm" onclick="toggleGameEdit(${g.id})">✏️ 編集</button>
           <button class="btn btn-outline btn-sm" onclick="toggleStatsPanel(${g.id})">
-            ${hasStats ? '✏️ 成績編集' : '📝 成績入力'}
+            ${hasStats ? '📊 成績編集' : '📝 成績入力'}
           </button>
           <button class="btn btn-danger btn-sm" onclick="deleteGame(${g.id})">削除</button>
+        </div>
+      </div>
+      <div class="stats-panel" id="gedit-${g.id}" style="display:none;padding:16px 20px;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">試合情報を編集</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div class="form-group"><label>試合日</label><input type="date" id="gedit-date-${g.id}" value="${g.date}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
+          <div class="form-group"><label>種別</label><select id="gedit-type-${g.id}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"><option${(g.type||'公式戦')==='公式戦'?' selected':''}>公式戦</option><option${(g.type||'')==='練習試合'?' selected':''}>練習試合</option></select></div>
+          <div class="form-group" style="grid-column:1/-1;"><label>対戦相手</label><input type="text" id="gedit-opponent-${g.id}" value="${g.opponent}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
+          <div class="form-group"><label>自軍得点</label><input type="number" id="gedit-us-${g.id}" value="${g.us||0}" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
+          <div class="form-group"><label>敵軍得点</label><input type="number" id="gedit-them-${g.id}" value="${g.them||0}" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="toggleGameEdit(${g.id})">キャンセル</button>
+          <button class="btn btn-primary btn-sm" onclick="saveGameEdit(${g.id})">保存</button>
         </div>
       </div>
       <div class="stats-panel ${openGameId === g.id ? 'open' : ''}" id="spanel-${g.id}">
@@ -450,6 +470,29 @@ function renderGames() {
       </div>
     </div>`;
   }).join('');
+}
+
+function toggleGameEdit(gid) {
+  const panel = document.getElementById(`gedit-${gid}`);
+  if (!panel) return;
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+}
+
+async function saveGameEdit(gid) {
+  const g = games.find(x => x.id === gid);
+  if (!g) return;
+  const opponent = document.getElementById(`gedit-opponent-${gid}`).value.trim();
+  if (!opponent) { alert('対戦相手を入力してください'); return; }
+  g.date     = document.getElementById(`gedit-date-${gid}`).value;
+  g.type     = document.getElementById(`gedit-type-${gid}`).value;
+  g.opponent = opponent;
+  g.us       = parseInt(document.getElementById(`gedit-us-${gid}`).value) || 0;
+  g.them     = parseInt(document.getElementById(`gedit-them-${gid}`).value) || 0;
+  await saveToSupabase();
+  renderGames();
+  renderStats();
+  showToast('試合情報を更新しました');
 }
 
 function numOpts(val) {
@@ -727,12 +770,14 @@ async function addPlayer() {
   const num  = document.getElementById('reg-number').value;
   const name = document.getElementById('reg-name').value.trim();
   const pos  = document.getElementById('reg-pos').value;
-  if (!name) return;
-  players.push({ id: Date.now(), number: num, name, pos });
+  if (!name) { alert('氏名を入力してください'); return; }
+  if (num === '' || isNaN(num)) { alert('背番号を入力してください'); return; }
+  players.push({ id: Date.now(), number: parseInt(num), name, pos });
   await saveToSupabase();
   document.getElementById('reg-name').value = '';
   document.getElementById('reg-number').value = '';
-  renderAll();
+  renderPlayerList();
+  renderStats();
   showToast('選手を追加しました');
 }
 
