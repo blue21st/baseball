@@ -53,7 +53,7 @@
   td { padding: 13px 14px; font-size: 14px; text-align: center; border-top: 1px solid var(--border); white-space: nowrap; }
   td:first-child { text-align: left; font-weight: 500; }
   tr:hover td { background: rgba(255,255,255,0.02); }
-  .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); margin-right: 10px; }
+  .player-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); display: inline-block; width: 36px; text-align: right; margin-right: 10px; flex-shrink: 0; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: var(--surface2); color: var(--muted); }
 
   .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
@@ -76,13 +76,14 @@
   .toast.show { transform: translateY(0); opacity: 1; }
 
   .game-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
-  .game-card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
+  .game-card-header { display: grid; grid-template-columns: 1fr auto auto; align-items: center; padding: 14px 20px; gap: 12px; }
+  .game-info { min-width: 0; }
   .game-info .date { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
   .game-info .opponent { font-weight: 700; font-size: 15px; }
   .game-info .type-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--surface2); color: var(--muted); margin-left: 8px; vertical-align: middle; }
-  .game-score { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); }
+  .game-score { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--accent); white-space: nowrap; text-align: right; }
   .game-score.lose { color: var(--red); }
-  .game-actions { display: flex; gap: 8px; align-items: center; }
+  .game-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 
   .stats-panel { display: none; border-top: 1px solid var(--border); padding: 20px; background: var(--surface2); }
   .stats-panel.open { display: block; }
@@ -188,6 +189,20 @@
 
   <!-- 試合一覧 -->
   <div class="panel" id="panel-games">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <select id="gfilter-season" onchange="renderGames()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <option value="">全年度</option>
+      </select>
+      <select id="gfilter-type" onchange="renderGames()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <option value="">全種別</option>
+        <option value="公式戦">公式戦</option>
+        <option value="練習試合">練習試合</option>
+      </select>
+      <select id="gfilter-tournament" onchange="renderGames()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+        <option value="">全大会</option>
+      </select>
+    </div>
+    <datalist id="tournament-list"></datalist>
     <div id="game-list-wrap"></div>
   </div>
 
@@ -198,7 +213,9 @@
       <div class="form-grid">
         <div class="form-group"><label>年度</label><input type="number" id="game-season" value="2026"></div>
         <div class="form-group"><label>種別</label><select id="game-type"><option>公式戦</option><option>練習試合</option></select></div>
-        <div class="form-group" style="grid-column:1/-1;"><label>大会名（任意）</label><input type="text" id="game-tournament" placeholder="例：春季大会"></div>
+        <div class="form-group" style="grid-column:1/-1;"><label>大会名（任意）</label>
+          <input type="text" id="game-tournament" placeholder="例：春季大会" list="tournament-list">
+        </div>
         <div class="form-group"><label>試合日</label><input type="date" id="game-date"></div>
         <div class="form-group"><label>対戦相手</label><input type="text" id="game-opponent" placeholder="○○チーム"></div>
         <div class="form-group"><label>自軍得点</label><select id="game-score-us"></select></div>
@@ -523,12 +540,36 @@ function renderStats() {
 
 function renderGames() {
   const wrap = document.getElementById('game-list-wrap');
-  const sorted = [...games].reverse();
-  if (!sorted.length) {
+
+  // フィルターセレクト更新
+  const seasons = [...new Set(games.map(g => g.season || String(new Date(g.date).getFullYear())))].sort((a,b) => b-a);
+  const tournaments = [...new Set(games.map(g => g.tournament).filter(Boolean))].sort();
+  const gfSeason = document.getElementById('gfilter-season');
+  const gfTour   = document.getElementById('gfilter-tournament');
+  if (gfSeason) { const cv=gfSeason.value; gfSeason.innerHTML='<option value="">全年度</option>'+seasons.map(s=>`<option value="${s}"${s===cv?' selected':''}>${s}年</option>`).join(''); }
+  if (gfTour)   { const cv=gfTour.value;   gfTour.innerHTML='<option value="">全大会</option>'+tournaments.map(t=>`<option value="${t}"${t===cv?' selected':''}>${t}</option>`).join(''); }
+
+  // datalist（大会名補完）更新
+  const dl = document.getElementById('tournament-list');
+  if (dl) dl.innerHTML = tournaments.map(t => `<option value="${t}">`).join('');
+
+  const selSeason = gfSeason?.value || '';
+  const selType   = document.getElementById('gfilter-type')?.value || '';
+  const selTour   = gfTour?.value || '';
+
+  // フィルター＋日付降順ソート
+  let filtered = [...games];
+  if (selSeason) filtered = filtered.filter(g => (g.season||String(new Date(g.date).getFullYear()))===selSeason);
+  if (selType)   filtered = filtered.filter(g => (g.type||'公式戦')===selType);
+  if (selTour)   filtered = filtered.filter(g => (g.tournament||'')===selTour);
+  filtered.sort((a,b) => b.date.localeCompare(a.date));
+
+  if (!filtered.length) {
     wrap.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted);">試合データがありません</p>';
     return;
   }
-  wrap.innerHTML = sorted.map(g => {
+
+  wrap.innerHTML = filtered.map(g => {
     const scoreClass = g.us < g.them ? 'lose' : '';
     const hasStats = g.stats && g.stats.some(s => s.pa > 0 || s.rbi > 0 || (s.details && s.details.length > 0));
     return `
@@ -545,7 +586,6 @@ function renderGames() {
           <button class="btn btn-outline btn-sm" onclick="toggleStatsPanel(${g.id})">
             ${hasStats ? '📊 成績編集' : '📝 成績入力'}
           </button>
-          <button class="btn btn-danger btn-sm" onclick="deleteGame(${g.id})">削除</button>
         </div>
       </div>
       <div class="stats-panel" id="gedit-${g.id}" style="display:none;padding:16px 20px;">
@@ -553,14 +593,17 @@ function renderGames() {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
           <div class="form-group"><label>試合日</label><input type="date" id="gedit-date-${g.id}" value="${g.date}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group"><label>種別</label><select id="gedit-type-${g.id}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"><option${(g.type||'公式戦')==='公式戦'?' selected':''}>公式戦</option><option${(g.type||'')==='練習試合'?' selected':''}>練習試合</option></select></div>
-          <div class="form-group" style="grid-column:1/-1;"><label>大会名（任意）</label><input type="text" id="gedit-tournament-${g.id}" value="${g.tournament||''}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
+          <div class="form-group" style="grid-column:1/-1;"><label>大会名（任意）</label><input type="text" id="gedit-tournament-${g.id}" value="${g.tournament||''}" list="tournament-list" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group" style="grid-column:1/-1;"><label>対戦相手</label><input type="text" id="gedit-opponent-${g.id}" value="${g.opponent}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group"><label>自軍得点</label><input type="number" id="gedit-us-${g.id}" value="${g.us||0}" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
           <div class="form-group"><label>敵軍得点</label><input type="number" id="gedit-them-${g.id}" value="${g.them||0}" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;width:100%;"></div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;">
-          <button class="btn btn-outline btn-sm" onclick="toggleGameEdit(${g.id})">キャンセル</button>
-          <button class="btn btn-primary btn-sm" onclick="saveGameEdit(${g.id})">保存</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <button class="btn btn-danger" onclick="deleteGame(${g.id})">削除</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="toggleGameEdit(${g.id})">キャンセル</button>
+            <button class="btn btn-primary btn-sm" onclick="saveGameEdit(${g.id})">保存</button>
+          </div>
         </div>
       </div>
       <div class="stats-panel ${openGameId === g.id ? 'open' : ''}" id="spanel-${g.id}">
@@ -861,15 +904,14 @@ async function deleteGame(id) {
 }
 
 function renderPlayerList() {
-  const sorted = [...players].sort((a,b) => a.number - b.number);
+  const sorted = [...players].sort((a,b) => Number(a.number) - Number(b.number));
   document.getElementById('player-list-tbody').innerHTML = sorted.map(p => `
     <tr id="row-${p.id}">
-      <td>${p.number}</td>
+      <td style="width:60px;"><span class="player-num" style="width:36px;display:inline-block;text-align:right;">${p.number}</span></td>
       <td style="text-align:left;">${p.name}</td>
       <td><span class="badge">${p.pos}</span></td>
-      <td style="display:flex;gap:5px;justify-content:center;">
+      <td style="text-align:center;">
         <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="editPlayerMode(${p.id})">編集</button>
-        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="deletePlayer(${p.id})">削除</button>
       </td>
     </tr>
   `).join('');
@@ -888,9 +930,10 @@ function editPlayerMode(id) {
         <option ${p.pos==='外野手'?'selected':''}>外野手</option>
       </select>
     </td>
-    <td style="display:flex;gap:5px;justify-content:center;">
+    <td style="display:flex;gap:5px;justify-content:center;align-items:center;flex-wrap:wrap;">
       <button class="btn btn-primary" style="padding:4px 10px;font-size:11px;" onclick="updatePlayer(${id})">保存</button>
       <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="renderPlayerList()">取消</button>
+      <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="deletePlayer(${id})">削除</button>
     </td>`;
 }
 
