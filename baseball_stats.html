@@ -110,16 +110,87 @@
   .player-add-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .player-add-row input, .player-add-row select { padding: 10px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
 
+  /* ボトムナビ（スマホ用） */
+  .bottom-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--surface); border-top: 1px solid var(--border);
+    height: 60px; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-nav-inner { display: flex; height: 60px; }
+  .bottom-nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: none; background: transparent; color: var(--muted); font-family: 'Noto Sans JP', sans-serif;
+    font-size: 10px; gap: 3px; cursor: pointer; transition: color 0.2s; padding: 0;
+  }
+  .bottom-nav-btn.active { color: var(--accent); }
+  .bottom-nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+
   @media (max-width: 600px) {
-    .main { padding: 16px 10px; }
-    .tabs { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); }
-    .tab { padding: 9px 4px; font-size: 12px; text-align: center; }
-    .form-grid { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .game-score { font-size: 22px; }
-    .game-card-header { flex-wrap: wrap; gap: 10px; }
+    /* ヘッダー */
+    header { height: 52px; padding: 0 16px; }
+    .logo { font-size: 22px; }
+
+    /* メイン */
+    .main { padding: 12px 10px 76px; /* ボトムナビ分の余白 */ }
+
+    /* タブを非表示→ボトムナビで代替 */
+    .tabs { display: none; }
+    .bottom-nav { display: block; }
+
+    /* 成績一覧テーブル */
+    .table-wrap { border-radius: 10px; }
+    table { font-size: 12px; }
+    th { padding: 8px 6px; font-size: 9px; letter-spacing: 0.5px; }
+    td { padding: 10px 6px; font-size: 12px; }
+    .player-num { font-size: 16px; width: 28px; margin-right: 6px; }
+
+    /* 成績カード */
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stat-card { padding: 12px 10px; }
+    .stat-card .value { font-size: 28px; }
+    .stat-card .label { font-size: 10px; }
+
+    /* フィルター */
+    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .filter-row select { font-size: 12px; padding: 6px 8px; flex: 1; min-width: 80px; }
+
+    /* 試合カード */
+    .game-card { border-radius: 10px; margin-bottom: 10px; }
+    .game-card-header { padding: 12px 14px; gap: 8px; }
+    .game-info .date { font-size: 11px; }
+    .game-info .opponent { font-size: 14px; font-weight: 700; }
+    .game-score { font-size: 20px; min-width: 64px; }
+    .game-actions { gap: 4px; }
+    .game-actions .btn-sm { padding: 5px 8px; font-size: 11px; }
+    .type-badge { font-size: 9px; padding: 2px 5px; }
+
+    /* 成績入力パネル */
+    .ps-player-card { padding: 10px 12px; border-radius: 8px; }
     .ps-card-stats { gap: 4px; }
-    .ps-input { padding: 8px 1px; font-size: 13px; }
+    .ps-stat label { font-size: 9px; }
+    .ps-input { font-size: 13px; padding: 7px 1px; }
+    .ps-num { font-size: 16px; }
+    .stats-panel { padding: 12px 14px; }
+    .stats-panel-title { font-size: 10px; }
+
+    /* フォーム */
+    .form-card { padding: 16px; border-radius: 10px; }
+    .form-title { font-size: 20px; margin-bottom: 14px; }
+    .form-grid { grid-template-columns: 1fr; gap: 10px; }
+    .form-group input, .form-group select { padding: 10px; font-size: 15px; }
+
+    /* 選手追加フォーム */
+    .player-add-row { gap: 6px; }
+    .player-add-row input, .player-add-row select { padding: 10px 8px; font-size: 14px; }
+
+    /* ボタン全般 */
+    .btn { font-size: 13px; padding: 9px 16px; }
+    .btn-sm { font-size: 11px; padding: 6px 10px; }
+
+    /* 打席詳細行 */
+    .detail-row { gap: 4px; }
+    .detail-num { font-size: 12px; min-width: 16px; }
   }
 </style>
 </head>
@@ -154,7 +225,7 @@
   <!-- 成績一覧 -->
   <div class="panel active" id="panel-stats">
     <!-- フィルター -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <div class="filter-row">
       <select id="filter-season" onchange="renderStats()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
         <option value="">全年度</option>
       </select>
@@ -189,7 +260,7 @@
 
   <!-- 試合一覧 -->
   <div class="panel" id="panel-games">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <div class="filter-row">
       <select id="gfilter-season" onchange="renderGames()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
         <option value="">全年度</option>
       </select>
@@ -253,6 +324,24 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ボトムナビ（スマホ用） -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bottom-nav-btn active" id="bnav-stats" onclick="switchTab('stats')">
+      <span class="nav-icon">📊</span><span>成績</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-register" onclick="switchTab('register')">
+      <span class="nav-icon">👤</span><span>選手</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-games" onclick="switchTab('games')">
+      <span class="nav-icon">📋</span><span>試合</span>
+    </button>
+    <button class="bottom-nav-btn" id="bnav-add" onclick="switchTab('add')">
+      <span class="nav-icon">➕</span><span>試合追加</span>
+    </button>
+  </div>
+</nav>
 
 <script>
 // --- Supabase ---
@@ -975,6 +1064,13 @@ function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`panel-${name}`).classList.add('active');
+  // ボトムナビ更新
+  names.forEach(n => {
+    const btn = document.getElementById(`bnav-${n}`);
+    if (btn) btn.classList.toggle('active', n === name);
+  });
+  // ページトップへ
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showToast(msg) {
